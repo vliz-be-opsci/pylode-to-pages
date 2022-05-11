@@ -10,8 +10,8 @@ import sys
 
 if __name__ == "__main__" :
     # Rename these variables to something meaningful
-    input1 = sys.argv[1]
-    input2 = sys.argv[2]
+    baseurl = sys.argv[1]
+    logconf = sys.argv[2]
 
 
     # Fake example outputs

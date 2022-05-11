@@ -1,27 +1,21 @@
 # Make sure to change the action name here (must be unique).
 # Update the rest as needed.
-name: 'unique-action-goes-here'
-description: 'BRIEF DESCRIPTION OF YOUR ACTION'
+name: 'pylode-to-pages'
+description: 'converts ontology descriptions into html by using pylode'
 branding: # Look at documentation for branding options/requirements. These are my favorites.
-  icon: 'book-open'
-  color: 'green'
+  icon: 'refresh-cw'
+  color: 'blue'
 inputs:
-  input-one:  
-    description: 'Description of input-one'
+  baseurl:
+    description: 'urlbase of the domain where this ontology gets published.'
+    required: true
+  logconf:
+    description: 'Log conf file in yml'
     required: false
-    default: 'default value goes here'
-  input-two:
-    description: 'Description of input-two'
-    required: false
-    default: 'default value goes here'
-outputs:
-  output-one:
-    description: 'Description of output-one'
-  output-two:
-    description: 'Description of output-two'	
+    default: 'logconf.yml'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.input-one }}
-    - ${{ inputs.input-two }}
+    - ${{ inputs.baseurl }}
+    - ${{ inputs.logconf }}

@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - YYYY-MM-DD
 
 ### Added
-* This template of a changelog. It is not really the changelog for this
-  template repository.
-  
+
 ### Changed
 
 ### Deprecated
@@ -17,6 +15,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-
-
-## [x.x.x] - YYYY-MM-DD
