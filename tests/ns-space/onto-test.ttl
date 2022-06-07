@@ -1,3 +1,4 @@
+@prefix tst: <{{baseurl}}/{{self}}#>
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix dc: <http://purl.org/dc/terms/> .
 @prefix schema: <http://schema.org/> .
@@ -11,10 +12,10 @@
 
 <{{baseurl}}/{{self}}>
     a owl:ontology;
-    rdfs:label            "Ontology1"@en ;
-    rdfs:comment          "An ontology - the first of its kind."@en ;
-    dc:issued        "2022-04-05"^^xsd:date ;
-    dc:modified      "2021-04-05"^^xsd:date ;
+    rdfs:label       "Test Ontology for the pylode action"@en ;
+    rdfs:comment     "An ontology - the first of its kind."@en ;
+    dc:issued        "2022-06-07"^^xsd:date ;
+    dc:modified      "2021-06-07"^^xsd:date ;
     dc:license       <https://creativecommons.org/licenses/by/4.0/> ;
     dc:creator
     [
@@ -22,7 +23,7 @@
         schema:email        <mailto:opsci@vliz.org> ;
         schema:affiliation  <https://www.vliz.be/> ;
     ] ;
-    vann:preferredNamespacePrefix "onto1" ;
+    vann:preferredNamespacePrefix "tst" ;
     vann:preferredNamespaceUri    "{{baseurl}}/{{self}}#" .
 
 
@@ -36,6 +37,6 @@
 onto1:CClass1
   a owl:Class ;
   rdfs:isDefinedBy  <{{baseurl}}/{{self}}> ;
-  rdfs:comment      "A concept class with no particular meaning - for ontology1."@en ;
-  rdfs:label        "ConceptClass1"@en ;
+  rdfs:comment      "A concept class with no particular meaning - created to test this {{self}}."@en ;
+  rdfs:label        "ConceptClass#1"@en ;
   rdfs:subClassOf   dc:Location, skos:Concept .
