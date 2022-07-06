@@ -6,6 +6,10 @@ branding: # Look at documentation for branding options/requirements. These are m
   icon: 'refresh-cw'
   color: 'blue'
 inputs:
+  nsfolder:
+    description: 'path to the ontologies to be processed' 
+    required: false
+    default: '.'
   baseurl:
     description: 'urlbase of the domain where this ontology gets published.'
     required: true
@@ -17,5 +21,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
+    - ${{ inputs.nsfolder }}
     - ${{ inputs.baseurl }}
     - ${{ inputs.logconf }}

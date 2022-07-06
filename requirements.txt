@@ -1,1 +1,4 @@
 pylode
+pytest
+pyyaml
+python-dotenv

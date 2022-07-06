@@ -8,20 +8,20 @@ formatters:
 handlers:
   stderr:
     class: logging.StreamHandler
-    level: INFO
+    level: DEBUG
     formatter: base
     stream: ext://sys.stderr
   file:
     class: logging.FileHandler
     level: DEBUG
     formatter: base
-    filename: xmlasdict.log
+    filename: pylode2pages.log
     mode: 'w'  # in stead of 'a'
 loggers:
   __main__:
     level: DEBUG
     propagate: yes
-  xmlasdict:
+  pylode2pages:
     level: DEBUG
     propagate: yes
   tests:
