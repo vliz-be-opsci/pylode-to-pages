@@ -6,21 +6,24 @@ GitHub Action to apply [pylode](https://pypi.org/project/pyLODE/) for publishing
 ## Working
 This action is to be used on git projects that maintain described ontology-files in ttl. It applies pyLODE to convert a human readable html version of them to be published via github pages.
 
-The output site is produced in the relative `build-to-publish/` folder and follows this procedure:
-* It simply runs through all folders and files and looks for `**name.ttl` files.
+The generated html is placed inside the actual repository folder `./` using this procedure:
+* It simply runs through all folders and files and looks for `**/name.ttl` files.
 * For all found entries it
-  * uses jinja2 to preprocess those to inject the provided {{ domain }} argument - being jinja2, you can choose to provide other interesting things
-  * adds an entry for it in the `./index.html`  at the root
-  * copies over the `**name.ttl` file to make it available for download
-  * using pyLODE it produces an html file called `**name` from the contents of the ttl
+  * creates a backup `**/name.ttl.bak` file
+  * uses jinja2 to pre-process those to inject the provided `{{ baseurl }}` and `{{ self }}` parameters to update the `**/name.ttl` file
+  * using pyLODE it produces an html file called `**/name` from the contents of the ttl
+  * and finally adds an entry for it in the `./index.html`  at the root
 
 
 
 ## Writing your ontologies
 
-The jinja2 pre-processing allows to have specific values to be injected
+The jinja2 pre-processing allows to have specific values to be injected:
 
-
+| parameter | contents                                     |
+| --------- | ---------------------------------------------|
+| baseurl   | url to be used in publishing, passed via action-yaml file (see below) |
+| self      | name of the current ttl being processed      |
 
 
 ## Enabling the action for your NS-ontology-project
@@ -61,7 +64,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build-to-publish
+          publish_dir: ./
 ```
 
 ## Kick-start the thing

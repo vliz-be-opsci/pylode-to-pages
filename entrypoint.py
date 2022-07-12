@@ -26,10 +26,11 @@ def enable_logging(logconf):
 def ontopub(outfolder, nsfolder, nsname, baseurl, copy_sources = True):
     nspath = os.path.join(nsfolder, nsname)
     log.debug(f"ontology to process: {nsname} in {nsfolder}")
+    # extract name for {{ self }} from filename
     # copy source
-    # extract folder name
+    # make a backup
     # make real namespace_url
-    # apply jinja2
+    # apply jinja2 (building context with baseurl and self)
     # apply pylode
 
 
@@ -39,13 +40,13 @@ def publish_ontologies(outfolder, nsfolder, baseurl, logconf = None):
     # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
     copy_sources = bool(outfolder != nsfolder) # only if we build into another folder then make copies!
-    log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseurl={baseurl}") 
+    log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseurl={baseurl}")
 
-    # ensure outfolder exists 
+    # ensure outfolder exists
     os.makedirs(outfolder, exist_ok=True)
 
     # todo if no baseurl, then no jinja processing
-    log.debug(f"baseurl set to [{baseurl}]") 
+    log.debug(f"baseurl set to [{baseurl}]")
 
     # todo jinja processing
 
@@ -64,7 +65,7 @@ def publish_ontologies(outfolder, nsfolder, baseurl, logconf = None):
 def main():
     load_dotenv()
 
-    # read the action inputs 
+    # read the action inputs
     nsfolder = sys.argv[1] if len(sys.argv) > 1 else "."
     baseurl = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('BASE_URL')
     logconf = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('LOGCONF')
