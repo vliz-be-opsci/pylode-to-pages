@@ -1,4 +1,6 @@
 pylode
-pytest
 pyyaml
+jinja2
 python-dotenv
+flake8
+pytest
