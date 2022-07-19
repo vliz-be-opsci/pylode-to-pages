@@ -1,0 +1,42 @@
+@prefix tst2:   <{{baseurl}}/{{name}}#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix dc:     <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix vann:   <http://purl.org/vocab/vann/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+
+<{{baseurl}}/{{name}}>
+    a owl:Ontology;
+    foaf:homepage    <{{baseurl}}/{{name.html}}> ;
+    rdfs:label       "Test Onto #02"@en ;
+    dc:issued        "2022-07-19"^^xsd:date ;
+    dc:modified      "2022-07-19"^^xsd:date ;
+    dc:license       <https://creativecommons.org/licenses/by/4.0/> ;
+    dc:publisher     <https://www.vliz.be/> ;
+    dc:creator
+    [
+        schema:name         "VLIZ Open science team" ;
+        schema:email        <mailto:opsci@vliz.org> ;
+        schema:affiliation  <https://www.vliz.be/> ;
+    ] ;
+    vann:preferredNamespacePrefix "tst2" ;
+    vann:preferredNamespaceUri    "{{baseurl}}/{{name}}#" .
+
+
+<https://www.vliz.be/>
+  a schema:Organization ;
+  schema:name   "Vlaams Instituut voor de Zee"@nl ;
+  schema:name   "Flanders Marine Institute"@en ;
+  schema:url    <https://www.vliz.be/> .
+
+tst2:Thingy
+  a owl:Class ;
+  rdfs:isDefinedBy  <{{baseurl}}/{{name}}> ;
+  rdfs:comment      "Something to test {{name}}."@en ;
+  rdfs:label        "Thingy"@en .
