@@ -35,7 +35,7 @@ def test_main():
     parent = Path(__file__).resolve().parent
     outfolder = parent / 'out'
     # clear outfolder
-    shutil.rmtree(outfolder)
+    shutil.rmtree(outfolder, ignore_errors=True)
 
     nsfolder = parent / 'ns-space'
     baseuri = 'https://example.org/pylode2pages-test'
