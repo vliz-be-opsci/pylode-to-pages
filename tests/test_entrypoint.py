@@ -41,8 +41,16 @@ def test_main():
     baseuri = 'https://example.org/pylode2pages-test'
     ontos = ep.publish_ontologies(str(outfolder), str(nsfolder), baseuri)
 
-    # todo assert produced output and returned list of ontologies processed.
     log.info(f"ontologies produced == {ontos}")
+
+    # assert returned list of ontologies processed.
+    assert {'sub/onto-two.ttl', './onto-one.ttl'} == ontos, "unexpected set of processed ontologies in test"
+    # assert available files
+    for o in ontos:
+        assert o.endswith('.ttl'), "processed ontology {o} should have .ttl extension"
+        assert (outfolder / o).resolve().exists(), "the processed ontology {o} should be in the output folder"
+        h = o.replace('.ttl', '.html')
+        assert (outfolder / h).resolve().exists(), "the pylode generated html {h} should be in the output folder"
 
 
 if __name__ == '__main__':
