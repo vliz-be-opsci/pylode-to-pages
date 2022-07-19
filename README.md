@@ -10,7 +10,7 @@ The generated html is placed inside the actual repository folder `./` using this
 * It simply runs through all folders and files and looks for `**/name.ttl` files.
 * For all found entries it
   * creates a backup `**/name.ttl.bak` file
-  * uses jinja2 to pre-process those to inject the provided `{{ baseurl }}` and `{{ self }}` parameters to update the `**/name.ttl` file
+  * uses jinja2 to pre-process those to inject the provided `{{ baseurl }}` and `{{ name }}` parameters to update the `**/name.ttl` file
   * using pyLODE it produces an html file called `**/name` from the contents of the ttl
   * and finally adds an entry for it in the `./index.html`  at the root
 
@@ -23,7 +23,7 @@ The jinja2 pre-processing allows to have specific values to be injected:
 | parameter | contents                                     |
 | --------- | ---------------------------------------------|
 | baseurl   | url to be used in publishing, passed via action-yaml file (see below) |
-| self      | name of the current ttl being processed      |
+| name      | name of the current ttl being processed      |
 
 
 ## Enabling the action for your NS-ontology-project
