@@ -1,5 +1,6 @@
 __pycache__/
 tests/__pycache__/
+tests/out/
 *.pyc
 .env
 *log
