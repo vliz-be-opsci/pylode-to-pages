@@ -51,6 +51,9 @@ def test_main():
         assert (outfolder / o).resolve().exists(), "the processed ontology {o} should be in the output folder"
         h = o.replace('.ttl', '.html')
         assert (outfolder / h).resolve().exists(), "the pylode generated html {h} should be in the output folder"
+        # todo some extra assertions
+        # assert backups 
+        # assert replacement of {{baseurl}} and {{name}}
 
 
 if __name__ == '__main__':
