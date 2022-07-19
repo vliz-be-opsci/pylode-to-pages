@@ -38,7 +38,7 @@ check:
 #	@${PYTHON} setup.py install
 
 docker-build:
-	@docker build . -t --file Dockerfile
+	@docker build . --file Dockerfile
 
 #release: build
 #	@${PYTHON} setup.py release
