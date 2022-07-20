@@ -6,13 +6,17 @@ branding: # Look at documentation for branding options/requirements. These are m
   icon: 'refresh-cw'
   color: 'blue'
 inputs:
+  baseuri:
+    description: 'urlbase of the domain where this ontology gets published.'
+    required: true
   nsfolder:
     description: 'path to the ontologies to be processed' 
     required: false
     default: '.'
-  baseurl:
-    description: 'urlbase of the domain where this ontology gets published.'
-    required: true
+  outfolder:
+    description: 'path to where results should be placed' 
+    required: false
+    default: '.'
   logconf:
     description: 'Log conf file in yml'
     required: false
@@ -21,6 +25,7 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
+    - ${{ inputs.baseuri }}
     - ${{ inputs.nsfolder }}
-    - ${{ inputs.baseurl }}
+    - ${{ inputs.outfolder }}
     - ${{ inputs.logconf }}

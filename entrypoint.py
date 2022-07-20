@@ -27,7 +27,7 @@ def enable_logging(logconf):
             logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
 
 
-def ontopub(outfolder, nsfolder, nssub, nsname, baseurl):
+def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"ontology to process: {nssub}/{nsname} in {nsfolder}")
 
     nsfolder = Path(nsfolder)
@@ -48,8 +48,8 @@ def ontopub(outfolder, nsfolder, nssub, nsname, baseurl):
     os.makedirs(outbackpath.parent, exist_ok=True)
     shutil.copyfile(nspath, outbackpath)
 
-    # apply jinja2 (building context with baseurl and self)
-    prms = dict(name=name, baseurl=baseurl)
+    # apply jinja2 (building context with baseuri and self)
+    prms = dict(name=name, baseuri=baseuri)
 
     # build jinja2 context - execute
     templates_env = Environment(loader=FileSystemLoader(nsfolder))
@@ -69,14 +69,14 @@ def ontopub(outfolder, nsfolder, nssub, nsname, baseurl):
         log.exception(ple)
 
 
-def publish_ontologies(outfolder, nsfolder, baseurl, logconf=None):
+def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
     enable_logging(logconf)
 
     # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
-    outfolder = Path(outfolder)
-    nsfolder = Path(nsfolder)
-    log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseurl={baseurl}")
+    outfolder = Path(outfolder).resolve()
+    nsfolder = Path(nsfolder).resolve()
+    log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
 
     # init result set
     ontos = set()
@@ -87,7 +87,7 @@ def publish_ontologies(outfolder, nsfolder, baseurl, logconf=None):
             if nsname.endswith('.ttl'):
                 log.debug(f"ttl file at {folder} - {nsname} when walking {nsfolder}")
                 nssub =  Path(folder).relative_to(nsfolder)
-                ontopub(outfolder, nsfolder, nssub, nsname, baseurl)
+                ontopub(baseuri, nsfolder, nssub, nsname, outfolder)
                 ontos.add(f"{str(nssub)}/{nsname}")
     return ontos
 
@@ -96,12 +96,13 @@ def main():
     load_dotenv()
 
     # read the action inputs
-    nsfolder = sys.argv[1] if len(sys.argv) > 1 else "."
-    baseurl = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('BASE_URL')
-    logconf = sys.argv[3] if len(sys.argv) > 3 else os.environ.get('LOGCONF')
+    baseuri = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('BASE_URI')
+    nsfolder = sys.argv[2] if len(sys.argv) > 2 else "."
+    outfolder = sys.argv[3] if len(sys.argv) > 3 else None
+    logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get('LOGCONF')
 
     # do the actual work
-    ontos = publish_ontologies(None, nsfolder, baseurl, logconf)
+    ontos = publish_ontologies(baseuri, nsfolder, outfolder, logconf)
 
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos}")

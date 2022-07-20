@@ -39,7 +39,7 @@ def test_main():
 
     nsfolder = parent / 'ns-space'
     baseuri = 'https://example.org/pylode2pages-test'
-    ontos = ep.publish_ontologies(str(outfolder), str(nsfolder), baseuri)
+    ontos = ep.publish_ontologies(baseuri, str(nsfolder), str(outfolder))
 
     log.info(f"ontologies produced == {ontos}")
 
