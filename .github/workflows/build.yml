@@ -33,7 +33,9 @@ jobs:
       id: integration
       uses: ./
       with:
-        domain: http://example.org/test/
+        baseuri: http://example.org/test
+        nsfolder: tests/ns-space
+        outfolder: tests/out
         logconf: logconf.yml
 
     - name: Verify integration test results
