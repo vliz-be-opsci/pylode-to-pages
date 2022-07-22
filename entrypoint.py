@@ -56,7 +56,7 @@ def enable_logging(logconf):
             with open(logconf, 'r') as yml_logconf:
                 logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
         else:
-            logging.config.dictConfig(yaml.loads(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
+            logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
             log.warning(f"--warning-- log config file pointed to by {logconf} does not exist. Default logging config applied.")
 
 
