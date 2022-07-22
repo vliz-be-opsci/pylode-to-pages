@@ -2,4 +2,3 @@
 !Dockerfile
 !entrypoint.py
 !requirements.txt
-!logconf.yml

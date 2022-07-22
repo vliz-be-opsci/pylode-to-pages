@@ -38,7 +38,7 @@ check:
 #	@${PYTHON} setup.py install
 
 docker-build:
-	@docker build . --file Dockerfile
+	@docker build . -t pylode-to-pages
 
 #release: build
 #	@${PYTHON} setup.py release

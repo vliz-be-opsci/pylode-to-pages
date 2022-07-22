@@ -23,8 +23,12 @@ log = logging.getLogger('pylode2pages')
 
 def enable_logging(logconf):
     if logconf is not None:
-        with open(logconf, 'r') as yml_logconf:
-            logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
+        if Path(logconf).is_file():
+            with open(logconf, 'r') as yml_logconf:
+                logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
+        else:
+            sys.stderr.write(f"--warning-- log config file pointed to by {logconf} does not exist. No logging configured.")
+            sys.stderr.flush()
 
 
 def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):

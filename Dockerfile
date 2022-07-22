@@ -13,7 +13,6 @@ FROM cicirello/pyaction:4
 # FROM ghcr.io/cicirello/pyaction:3
 
 COPY entrypoint.py /entrypoint.py
-COPY logconf.yml /logconf.yml
 COPY requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
 
