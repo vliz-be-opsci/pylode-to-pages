@@ -7,6 +7,7 @@ import shutil
 from dotenv import load_dotenv
 sys.path.append(str(Path(__file__).parent.parent))
 import entrypoint as ep
+from assert_outcome import assert_result
 
 
 log = logging.getLogger('tests')
@@ -45,15 +46,9 @@ def test_main():
 
     # assert returned list of ontologies processed.
     assert {'sub/onto-two.ttl', './onto-one.ttl'} == ontos, "unexpected set of processed ontologies in test"
-    # assert available files
-    for o in ontos:
-        assert o.endswith('.ttl'), "processed ontology {o} should have .ttl extension"
-        assert (outfolder / o).resolve().exists(), "the processed ontology {o} should be in the output folder"
-        h = o.replace('.ttl', '.html')
-        assert (outfolder / h).resolve().exists(), "the pylode generated html {h} should be in the output folder"
-        # todo some extra assertions
-        # assert backups 
-        # assert replacement of {{baseurl}} and {{name}}
+
+    # assert outcome and available files
+    assert_result(baseuri, outfolder, ontos)
 
 
 if __name__ == '__main__':

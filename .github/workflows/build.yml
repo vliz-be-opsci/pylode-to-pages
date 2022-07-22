@@ -33,7 +33,7 @@ jobs:
       id: integration
       uses: ./
       with:
-        baseuri: http://example.org/test
+        baseuri: http://example.org/integration-test
         nsfolder: tests/ns-space
         outfolder: tests/out
         logconf: logconf.yml
