@@ -2,11 +2,14 @@ from pathlib import Path
 
 def assert_result(baseuri, outfolder, ontos):
     outfolder = Path(outfolder).resolve()
-    for o in ontos:
-        assert o.endswith('.ttl'), "processed ontology {o} should have .ttl extension"
-        assert (outfolder / o).resolve().exists(), "the processed ontology {o} should be in the output folder"
-        h = o.replace('.ttl', '.html')
-        assert (outfolder / h).resolve().exists(), "the pylode generated html {h} should be in the output folder"
-        # todo some extra assertions
+    for nskey in ontos:
+        assert nskey.endswith('.ttl'), "processed ontology {nskey} should have .ttl extension"
+        assert (outfolder / nskey).resolve().exists(), "the processed ontology {nskey} should be in the output folder"
+        htmlpath = nskey.replace('.ttl', '.html')
+        assert (outfolder / htmlpath).resolve().exists(), "the pylode generated html {nskey} should be in the output folder"
+        # TODO some extra assertions: 
         # assert backups 
         # assert replacement of {{baseurl}} and {{name}}
+
+    # TODO some general assertions
+    # e.g. about the index.html

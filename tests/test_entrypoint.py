@@ -45,7 +45,7 @@ def test_main():
     log.info(f"ontologies produced == {ontos}")
 
     # assert returned list of ontologies processed.
-    assert {'sub/onto-two.ttl', './onto-one.ttl'} == ontos, "unexpected set of processed ontologies in test"
+    assert {'sub/onto-two.ttl', './onto-one.ttl'} == set(ontos.keys()), "unexpected set of processed ontologies in test"
 
     # assert outcome and available files
     assert_result(baseuri, outfolder, ontos)
