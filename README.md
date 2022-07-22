@@ -39,7 +39,7 @@ on:
       - main  # Set a branch name to trigger deployment
   pull_request:
 jobs:
-  deploy:
+  pylode-to-pages:
     runs-on: ubuntu-20.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
