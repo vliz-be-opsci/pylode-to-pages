@@ -33,7 +33,7 @@ jobs:
       id: integration
       uses: ./
       with:
-        domain: http://example.org/test/
+        baseuri: http://example.org/test/
         logconf: logconf.yml
 
     - name: Verify integration test results
