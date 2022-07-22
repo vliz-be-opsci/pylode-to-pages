@@ -19,27 +19,27 @@ from jinja2 import Environment, FileSystemLoader
 from pylode import OntDoc, PylodeError, __version__ as plv
 
 
-log = logging.getLogger('pylode2pages')
+log = logging.getLogger('pylode-to-pages')
 
 
-EMBEDDED_YAML_LOGCONF=""""
-#embedded yaml config
+EMBEDDED_YAML_LOGCONF = """
 version: 1
+formatters:
+  base:
+    format: '%(asctime)-18s @%(name)-20s [%(levelname)-8s] %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
 handlers:
   stderr:
     class: logging.StreamHandler
     level: DEBUG
+    formatter: base
     stream: ext://sys.stderr
 loggers:
-  __main__:
+  pylode-to-pages:
     level: DEBUG
-    propagate: yes
-  pylode2pages:
-    level: DEBUG
-    propagate: yes
 root:
   level: DEBUG
-  handlers: stderr
+  handlers: [stderr]
 """
 
 
@@ -51,13 +51,12 @@ EMBEDDED_INDEX_TEMPLATE=""""
 
 
 def enable_logging(logconf):
-    if logconf is not None:
-        if Path(logconf).is_file():
-            with open(logconf, 'r') as yml_logconf:
-                logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
-        else:
-            logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
-            log.warning(f"--warning-- log config file pointed to by {logconf} does not exist. Default logging config applied.")
+    if logconf is not None and Path(logconf).is_file():
+        with open(logconf, 'r') as yml_logconf:
+            logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
+    else:
+        logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
+        log.warning(f"logconf file '{logconf}' does not exist. Embedded logging config applied as fallback.")
 
 
 def extract_pub_dict(od: OntDoc):

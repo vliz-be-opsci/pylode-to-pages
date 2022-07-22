@@ -21,7 +21,7 @@ loggers:
   __main__:
     level: DEBUG
     propagate: yes
-  pylode2pages:
+  pylode-to-pages:
     level: DEBUG
     propagate: yes
   tests:
