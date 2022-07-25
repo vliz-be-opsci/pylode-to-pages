@@ -77,40 +77,56 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     name = str(Path(nsname).stem)
     # produce html path ans index-symlink
     outhtmlpath = (outfolder / nssub / f"{name}.html").resolve()
-    outindexpath = (outfolder / nssub / name / "index.html").resolve()
+    log.debug(f"> {name} --> outhtmlpath == '{outhtmlpath}'")
+    outindexpath = (outfolder / nssub / name).resolve() / "index.html"
+    log.debug(f"> {name} --> outindexpath == '{outindexpath}'")
 
     # and finally prefix it with the nssub if relevant to produce the jinja {{name}}
-    name = name if str(nssub == '.') else str(nssub) + "/" + nsname
+    name = name if str(nssub) == '.' else str(nssub) + "/" + name
+    log.debug(f"> {name} --> ontopub work started")
 
     # ensure outfolder exists (indexpath is the deepest one) 
     os.makedirs(outindexpath.parent, exist_ok=True)
+    log.debug(f"> {name} --> created folders to contain '{outindexpath}'")
     # make a backup
     shutil.copyfile(nspath, outbackpath)
+    log.debug(f"> {name} --> backup original provided at '{outbackpath}'")
 
     # apply jinja2 (building context with baseuri and self) -- build jinja2 context - execute
     prms = dict(name=name, baseuri=baseuri)
     templates_env = Environment(loader=FileSystemLoader(nsfolder))
     template = templates_env.get_template(str(nspath.relative_to(nsfolder)))
     outcome = template.render(prms)
-    log.debug(f"name to use is == {name}")
-    log.debug(f"context for templates == {prms}")
+    log.debug(f"> {name} --> context for templates == {prms}")
     with open(str(outpath), "w") as outfile:
         outfile.write(outcome)
+    log.debug(f"> {name} --> processed ontlogy written to '{outpath}'")
 
-    nspub = dict(error=True)
+    nspub = dict(error=True) # this assumes things will go bad :)
     # apply pylode
     try:
         od = OntDoc(outpath)
+        log.debug(f"> {name} --> ontology loaded to pylode from '{outpath}'")
+        # ask pylode to make the html
         od.make_html(destination=outhtmlpath, include_css=False)
-        # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
-        nspub = extract_pub_dict(od)
-        # finally also add a symlink from name.html to name/index.html
+        log.debug(f"> {name} --> html produced to '{outhtmlpath}'")
+        # also add a symlink from name.html to name/index.html
+        if (outindexpath.is_file()): # in case this would already exist
+            os.remove(outindexpath)
         os.symlink(outhtmlpath, outindexpath)
+        log.debug(f"> {name} --> symlink added to '{outindexpath}'")
+        # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
+        nspub = extract_pub_dict(od)  # if we got here however, things should be ok
+        log.debug(f"> {name} --> ready with result == {nspub}")
     except PylodeError as ple:
-        log.error(f"Failed to process ontology {name} at {nspath} with pylode v.{plv}")
+        log.error(f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'")
         log.exception(ple)
+    except Exception as e:
+        log.error(f"> {name} -->  unexpected failure in processing ontology at '{nspath}'")
+        log.exception(e)
     finally:    
         # return the pub struct with core elements for the overview page
+        log.debug(f"> {name} --> returning result == {nspub}")
         return nspub
 
 
@@ -123,7 +139,7 @@ def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
     nsfolder = Path(nsfolder).resolve()
     log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
 
-    # init result set
+    # init result sets
     ontos = dict()
     ontos_in_err = set()
 
@@ -136,6 +152,7 @@ def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
                 nskey=f"{str(nssub)}/{nsname}"
                 nspub=ontopub(baseuri, nsfolder, nssub, nsname, outfolder)
                 if bool(nspub.get("error")):  # if the error key is there and set to anything non-False 
+                    log.debug(f"error processing {nskey} --> {nspub}")
                     ontos_in_err.add(nskey)
                 ontos[nskey]=nspub
 
