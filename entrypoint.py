@@ -75,7 +75,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
 
     # extract name for {{ self }} from filename
     name = str(Path(nsname).stem)
-    # produce html path ans index-symlink
+    # produce html path and index-path
     outhtmlpath = (outfolder / nssub / f"{name}.html").resolve()
     log.debug(f"> {name} --> outhtmlpath == '{outhtmlpath}'")
     outindexpath = (outfolder / nssub / name).resolve() / "index.html"
@@ -85,7 +85,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     name = name if str(nssub) == '.' else str(nssub) + "/" + name
     log.debug(f"> {name} --> ontopub work started")
 
-    # ensure outfolder exists (indexpath is the deepest one) 
+    # ensure outfolder exists (indexpath is the deepest one)
     os.makedirs(outindexpath.parent, exist_ok=True)
     log.debug(f"> {name} --> created folders to contain '{outindexpath}'")
     # make a backup
@@ -110,11 +110,9 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         # ask pylode to make the html
         od.make_html(destination=outhtmlpath, include_css=False)
         log.debug(f"> {name} --> html produced to '{outhtmlpath}'")
-        # also add a symlink from name.html to name/index.html
-        if (outindexpath.is_file()): # in case this would already exist
-            os.remove(outindexpath)
-        os.symlink(outhtmlpath, outindexpath)
-        log.debug(f"> {name} --> symlink added to '{outindexpath}'")
+        # also add an extra copy from name.html to name/index.html
+        shutil.copy(outhtmlpath, outindexpath)
+        log.debug(f"> {name} --> copy added to '{outindexpath}'")
         # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
         log.debug(f"> {name} --> ready with result == {nspub}")
@@ -124,7 +122,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     except Exception as e:
         log.error(f"> {name} -->  unexpected failure in processing ontology at '{nspath}'")
         log.exception(e)
-    finally:    
+    finally:
         # return the pub struct with core elements for the overview page
         log.debug(f"> {name} --> returning result == {nspub}")
         return nspub
@@ -151,7 +149,7 @@ def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
                 nssub =  Path(folder).relative_to(nsfolder)
                 nskey=f"{str(nssub)}/{nsname}"
                 nspub=ontopub(baseuri, nsfolder, nssub, nsname, outfolder)
-                if bool(nspub.get("error")):  # if the error key is there and set to anything non-False 
+                if bool(nspub.get("error")):  # if the error key is there and set to anything non-False
                     log.debug(f"error processing {nskey} --> {nspub}")
                     ontos_in_err.add(nskey)
                 ontos[nskey]=nspub
