@@ -161,7 +161,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
         log.debug(f"> {name} --> ready with result == {nspub}")
         nspub['name'] = name
-        nspub['relref'] = outindexpath.relative_to(outfolder)
+        nspub['relref'] = outindexpath.parent.relative_to(outfolder)
     except PylodeError as ple:
         log.error(f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'")
         log.exception(ple)
