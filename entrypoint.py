@@ -110,8 +110,9 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         # ask pylode to make the html
         od.make_html(destination=outhtmlpath, include_css=False)
         log.debug(f"> {name} --> html produced to '{outhtmlpath}'")
-        # also add an extra copy from name.html to name/index.html
+        # also add an extra copy from name.html to name/index.html AND for the css as well
         shutil.copy(outhtmlpath, outindexpath)
+        shutil.copy(outhtmlpath.parent  / "pylode.css", outindexpath.parent / "pylode.css")
         log.debug(f"> {name} --> copy added to '{outindexpath}'")
         # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
