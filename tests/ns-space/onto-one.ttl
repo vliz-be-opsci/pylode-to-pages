@@ -1,4 +1,4 @@
-@prefix tst1:   <{{baseurl}}/{{name}}#> .
+@prefix tst1:   <{{baseuri}}/{{name}}#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix dc:     <http://purl.org/dc/terms/> .
 @prefix schema: <http://schema.org/> .
@@ -12,9 +12,9 @@
 @prefix dcat:   <http://www.w3.org/ns/dcat#> .
 
 
-<{{baseurl}}/{{name}}>
+<{{baseuri}}/{{name}}>
     a owl:Ontology;
-    foaf:homepage    <{{baseurl}}/{{name.html}}> ;
+    foaf:homepage    <{{baseuri}}/{{name.html}}> ;
     rdfs:label       "Test Onto #01"@en ;
     dc:issued        "2022-06-07"^^xsd:date ;
     dc:modified      "2022-07-19"^^xsd:date ;
@@ -26,7 +26,7 @@
         schema:affiliation  <https://www.vliz.be/> ;
     ] ;
     vann:preferredNamespacePrefix "tst1" ;
-    vann:preferredNamespaceUri    "{{baseurl}}/{{name}}#" .
+    vann:preferredNamespaceUri    "{{baseuri}}/{{name}}#" .
 
 
 <https://www.vliz.be/>
@@ -38,7 +38,7 @@
 
 tst1:CClass1
   a owl:Class ;
-  rdfs:isDefinedBy  <{{baseurl}}/{{name}}> ;
+  rdfs:isDefinedBy  <{{baseuri}}/{{name}}> ;
   rdfs:comment      "Concept Class Test for {{name}}."@en ;
   rdfs:label        "ConceptClass#1"@en ;
   rdfs:subClassOf   dc:Location, skos:Concept .

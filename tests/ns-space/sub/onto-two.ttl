@@ -1,4 +1,4 @@
-@prefix tst2:   <{{baseurl}}/{{name}}#> .
+@prefix tst2:   <{{baseuri}}/{{name}}#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix dc:     <http://purl.org/dc/terms/> .
 @prefix schema: <http://schema.org/> .
@@ -11,9 +11,9 @@
 @prefix prov:   <http://www.w3.org/ns/prov#> .
 @prefix dcat:   <http://www.w3.org/ns/dcat#> .
 
-<{{baseurl}}/{{name}}>
+<{{baseuri}}/{{name}}>
     a owl:Ontology;
-    foaf:homepage    <{{baseurl}}/{{name.html}}> ;
+    foaf:homepage    <{{baseuri}}/{{name.html}}> ;
     rdfs:label       "Test Onto #02"@en ;
     dc:issued        "2022-07-19"^^xsd:date ;
     dc:modified      "2022-07-19"^^xsd:date ;
@@ -26,7 +26,7 @@
         schema:affiliation  <https://www.vliz.be/> ;
     ] ;
     vann:preferredNamespacePrefix "tst2" ;
-    vann:preferredNamespaceUri    "{{baseurl}}/{{name}}#" .
+    vann:preferredNamespaceUri    "{{baseuri}}/{{name}}#" .
 
 
 <https://www.vliz.be/>
@@ -37,6 +37,6 @@
 
 tst2:Thingy
   a owl:Class ;
-  rdfs:isDefinedBy  <{{baseurl}}/{{name}}> ;
+  rdfs:isDefinedBy  <{{baseuri}}/{{name}}> ;
   rdfs:comment      "Something to test {{name}}."@en ;
   rdfs:label        "Thingy"@en .
