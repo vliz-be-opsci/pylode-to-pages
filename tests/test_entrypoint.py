@@ -5,9 +5,9 @@ import logging
 import pytest
 import shutil
 from dotenv import load_dotenv
+from assert_outcome import assert_result
 sys.path.append(str(Path(__file__).parent.parent))
 import entrypoint as ep
-from assert_outcome import assert_result
 
 
 log = logging.getLogger('tests')
