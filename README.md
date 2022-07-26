@@ -2,6 +2,10 @@
 
 GitHub Action to apply [pylode](https://pypi.org/project/pyLODE/) for publishing github-managed ontologies via github pages
 
+## Status
+
+[![build](https://github.com/vliz-be-opsci/pylode-to-pages/actions/workflows/build.yml/badge.svg)](https://github.com/vliz-be-opsci/pylode-to-pages/actions/workflows/build.yml)
+[![release](https://badgen.net/github/release/vliz-be-opsci/pylode-to-pages)](https://github.com/vliz-be-opsci/pylode-to-pages/releases)
 
 ## Working
 This action is to be used on git projects that maintain described ontology-files in ttl. It applies pyLODE to convert a human readable html version of them to be published via github pages.
