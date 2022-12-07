@@ -174,6 +174,17 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         return nspub
 
 
+def publish_misc(baseuri, nsfolder, outfolder ):
+    otherfiles = ["CNAME"]
+    nsfolder = Path(nsfolder)
+    outfolder = Path(outfolder)
+    for other in otherfiles:
+        otherfile = nsfolder / other
+        if otherfile.exists():
+            shutil.copy(otherfile, outfolder / other)
+    #TODO consider generating CNAME file with content derived from baseuri
+
+
 def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
     enable_logging(logconf)
 
@@ -199,6 +210,9 @@ def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
                     log.debug(f"error processing {nskey} --> {nspub}")
                     ontos_in_err.add(nskey)
                 ontos[nskey] = nspub
+
+    # copy any other stuff outside the actual pylode / ontology stuff 
+    publish_misc(baseuri, nsfolder, outfolder)
 
     # generate a proper index.html file using an embedded jinja-template
     prms = dict(ontos=ontos, baseuri=baseuri)
