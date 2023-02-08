@@ -69,6 +69,9 @@ EMBEDDED_INDEX_TEMPLATE = """
   <tbody>
     {%for key,onto in ontos.items()%}
       <tr><td><a href="{{onto.relref}}">{{onto.name}}/</a></td><td>{{onto.title}}</td><td>{{onto.lastmod}}</td></tr>
+        {%for subkey,subonto in onto.items()%}
+        <tr><td>{{subkey}}</td></tr>
+        {%endfor%}
     {%endfor %}
   </tbody>
 </table>
