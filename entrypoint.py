@@ -303,7 +303,6 @@ EMBEDDED_INDEX_TEMPLATE = """
 }
 
 .hover_property {
-    cursor: help;
     text-decoration: none;
     border-bottom: dashed 1px;
 }
