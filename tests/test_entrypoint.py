@@ -50,6 +50,5 @@ def test_main():
     # assert outcome and available files
     assert_result(baseuri, outfolder, ontos)
 
-
 if __name__ == '__main__':
     run_single_test(__file__)
