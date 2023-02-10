@@ -343,15 +343,7 @@ code{
                     <tr>
                         <th>IRI</th>
                         <td>
-                            <code>{{onto.relref}}</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <span class="hover_property">Name</span>
-                        </th>
-                        <td>
-                            <p>{{onto.name}}</p>
+                            <code>{{baseuri}}/{{onto.relref}}</code>
                         </td>
                     </tr>
                     <tr>
@@ -472,7 +464,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     # apply jinja2 (building context with baseuri and self) -- build jinja2 context - execute
     prms = dict(name=name, baseuri=baseuri)
     templates_env = Environment(loader=FileSystemLoader(nsfolder))
-    template = templates_env.get_template(str(nspath.relative_to(nsfolder)))
+    template = templates_env.get_template(str(nspath.relative_to(nsfolder)).replace("\\", "/"))
     outcome = template.render(prms)
     log.debug(f"> {name} --> context for templates == {prms}")
     with open(str(outpath), "w") as outfile:
@@ -494,7 +486,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
         log.debug(f"> {name} --> ready with result == {nspub}")
         nspub['name'] = name
-        nspub['relref'] = outindexpath.parent.relative_to(outfolder)
+        nspub['relref'] = str(outindexpath.parent.relative_to(outfolder)).replace("\\", "/")
     except PylodeError as ple:
         log.error(f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'")
         log.exception(ple)
