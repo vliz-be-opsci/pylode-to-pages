@@ -57,8 +57,8 @@ EMBEDDED_INDEX_TEMPLATE = """
   <style>
         #pylode {
             position: fixed;
-            top: 130px;
-            left: -130px;
+            top: 170px;
+            left: -150px;
             font-size: small;
             transform: rotate(-90deg);
             color: grey;
@@ -349,7 +349,7 @@ code{
                     </tr>
                     <tr>
                         <th>
-                            <p class="hover_property">Name</p>
+                            <span class="hover_property">Name</span>
                         </th>
                         <td>
                             <p>{{onto.name}}</p>
@@ -357,7 +357,7 @@ code{
                     </tr>
                     <tr>
                         <th>
-                            <p class="hover_property">Title</p>
+                            <span class="hover_property">Title</span>
                         </th>
                         <td>
                             <p>{{onto.title}}</p>
@@ -365,7 +365,7 @@ code{
                     </tr>
                     <tr>
                         <th>
-                            <p class="hover_property">Last modified</p>
+                            <span class="hover_property">Last modified</span>
                         </th>
                         <td>
                             <p>{{onto.lastmod}}</p>
