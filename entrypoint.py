@@ -15,6 +15,7 @@ import yaml
 from dotenv import load_dotenv
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, BaseLoader
+from pysubyt import JinjaBasedGenerator, SourceFactory, SinkFactory, Settings
 from pylode import OntDoc, PylodeError, __version__ as plv
 from pylode import (
     DCTERMS,
@@ -507,6 +508,83 @@ def publish_misc(baseuri, nsfolder, outfolder ):
         if otherfile.exists():
             shutil.copy(otherfile, outfolder / other)
     #TODO consider generating CNAME file with content derived from baseuri
+    
+def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
+    log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
+    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
+    toreturn = dict()
+    try:
+        output_name_html = nsname.replace(".csv", ".html")
+        output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
+        template_path = "templates"
+        template_name_html = "template_html.html"
+        template_name_ttl = "template_ttl.ttl"
+        input_file = nsfolder / nssub / nsname
+        log.debug(f"input_file={input_file}")
+        #html generation
+        args = {
+            "input":input_file.__str__(),
+            "output":(outfolder / nssub / output_name_html).__str__(),
+            "template_path":template_path,
+            "template_name":template_name_html
+        }
+        log.debug(f"arguments_pysubytd={args}")
+        service = JinjaBasedGenerator(args["template_path"])
+        source = {"_": SourceFactory.make_source(args["input"])}
+        sink = SinkFactory.make_sink(args["output"], force_output=True)
+        settings = Settings()
+        service.process(args["template_name"], source, settings, sink)
+        #ttl generation
+        second_args = {
+            "input":input_file.__str__(),
+            "output":(outfolder / nssub / output_name_ttl).__str__(),
+            "template_path":template_path,
+            "template_name":template_name_ttl
+        }
+        log.debug(f"arguments_pysubytd={second_args}")
+        service = JinjaBasedGenerator(second_args["template_path"])
+        source = {"_": SourceFactory.make_source(second_args["input"])}
+        sink = SinkFactory.make_sink(second_args["output"], force_output=True)
+        service.process(second_args["template_name"], source, settings, sink)
+        
+        
+        toreturn["error"] = False
+    except Exception as e:
+        toreturn['error'] = True
+        toreturn['error_message'] = str(e)
+    finally:
+        return toreturn
+    
+    
+def publish_vocabs(baseuri, nsfolder, outfolder, logconf=None):
+    enable_logging(logconf)
+    
+    #default target folder to input folder
+    outfolder = nsfolder if outfolder is None else outfolder
+    outfolder = Path(outfolder).resolve()
+    nsfolder = Path(nsfolder).resolve()
+    log.debug(f"publishing vocabs from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
+    
+    #init result sets
+    vocabs = dict()
+    vocabs_in_err = set()
+    
+    #run over nsfolder and process ontology files
+    for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+        for nsname in nsfiles:
+            if nsname.endswith(".csv"):
+                log.debug(f"csv file at {folder} - {nsname} when walking {nsfolder}")
+                
+                nssub = Path(folder).relative_to(nsfolder)
+                nskey  =f"{str(nssub)}/{nsname}"
+                nspub = vocabpub(baseuri, nsfolder, nssub, nsname, outfolder)
+                if nspub['error']:
+                    log.debug(f"vocab {nskey} failed to publish")
+                    log.exception(nspub['error_message'])
+                    vocabs_in_err.add(nskey)
+                vocabs[nskey] = nspub
+                
+    return vocabs
 
 def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
     enable_logging(logconf)
@@ -574,6 +652,7 @@ def main():
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
     ontos = publish_ontologies(baseuri, nsfolder, outfolder, logconf)
+    vocabs= publish_vocabs(baseuri, nsfolder, outfolder, logconf)
 
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")

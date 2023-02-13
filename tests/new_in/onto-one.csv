@@ -1,0 +1,11 @@
+ID,DATE,PREFLABEL_EN,DEFINITION_EN,ALTLABEL_EN,BROADER,NARROWER
+1,2016-01-01,Abdominal pain,Pain in the region of the abdomen. It is a common complaint and has many causes.,,[4],[2]
+2,2017-01-01,Rectum,bodypart that is responsible for excretion of feces,,[4],
+3,2018-01-02,Spine,bodypart most people don't have ,Back,[4],[2]
+4,2017-02-28,Body, the physical structure of a person or an animal.,,,[3;2;1]
+5,2019-01-31,No Def,,no definition,[4],[2;1]
+6,2017-12-12,example one, just an example, ex1,,,
+7,2017-12-23,example two, just example 2,,,[6]
+8,2015-12-14,example three,,,[5],[6;7]
+9,1996-01-03,test,,,,,
+10,2000-01-01,test 2, second test,,[7;8;9],[1]

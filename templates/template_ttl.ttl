@@ -1,0 +1,33 @@
+{% if ctrl.isFirst %}
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<https://example.org/#collection>
+        rdf:type                skos:Collection ;
+        skos:member             {% for row in sets['_']%}<https://example.org/#{{row.ID}}> ,{%- endfor -%};  
+        .
+{% endif -%}
+
+
+<https://example.org/#{{_.ID}}>
+        rdf:type               skos:Concept ;
+        dc:date                "{{_.DATE}}" ;
+        dc:identifier          "{{_.ID}}" ;
+        skos:prefLabel         "{{_.PREFLABEL_EN}}"@en ;
+        {%-if '[' in  _.BROADER -%}
+        {%-set BROADER = _.BROADER.replace('[','').replace(']','').split(';')%}
+        skos:broader           {%for B in BROADER%} <https://example.org/#{{B}}> ,{%endfor%};
+        {%-endif%}
+        {%-if '[' in _.NARROWER -%}
+        {%-set NARROWER = _.NARROWER.replace('[','').replace(']','').split(';')%}
+        skos:narrower          {%for N in NARROWER%} <https://example.org/#{{N}}> ,{%endfor%};
+        {%-endif%}
+        {%if _.DEFINITION_EN-%}
+        skos:definition        "{{_.DEFINITION_EN}}"@en ;
+        {%-endif%}
+        {%if _.ALTLABEL_EN-%}
+        skos:altLabel          "{{_.ALTLABEL_EN}}" 
+        {%-endif%}
+        .
+
