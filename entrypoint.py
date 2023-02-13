@@ -29,6 +29,304 @@ from itertools import chain
 
 log = logging.getLogger('pylode-to-pages')
 
+EMBEDDED_INDEX_IFRAME_TEMPLATE = """
+<html>
+<head>
+  <title>Overview of {{baseuri}} namespace</title>
+  <style>
+        #pylode {
+            position: fixed;
+            top: 170px;
+            left: -150px;
+            font-size: small;
+            transform: rotate(-90deg);
+            color: grey;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        #pylode a {
+            font-size: 2em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #005A9C;
+        }
+        #pylode a:hover {
+            color: #333;
+        }
+        #pylode #p {
+            color: #329545;
+        }
+        #pylode #y {
+            color: #f9cb33;
+        }
+        #pylode #version {
+            font-size: 1.0em;
+        }
+
+        .cardinality {
+            font-style: italic;
+            color: #aa00aa;
+        }
+
+        dl {
+            /*border: 1px solid navy;*/
+            /*padding:5px;*/
+        }
+
+        dt {
+            font-weight: bold;
+            padding: 0;
+        }
+
+        dd {
+            margin-bottom: 10px;
+            padding-top: 7px;
+        }
+
+        #metadata ul,
+        #classes ul {
+            list-style-type: none;
+        }
+
+        #metadata ul li,
+        #classes ul li {
+            margin-left: -40px;
+        }
+
+        ul.hlist {
+            list-style-type: none;
+            border: 1px solid navy;
+            padding:5px;
+            background-color: #F4FFFF;
+        }
+
+        ul.hierarchy {
+            border: 1px solid navy;
+            padding: 5px 25px 5px 25px;
+            background-color: #F4FFFF;
+        }
+
+
+        ul.hlist li {
+            display: inline;
+            margin-right: 10px;
+        }
+
+        .entity {
+            border: 1px solid navy;
+            margin:5px 0 5px 0;
+            padding: 5px;
+        }
+
+        .entity th {
+            width: 150px;
+            vertical-align: top;
+        }
+
+        .entity th,
+        .entity td {
+            padding-bottom: 20px;
+        }
+
+        .entity table th {
+            text-align: left;
+        }
+
+        section#overview img {
+            max-width: 1000px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            text-align: left
+        }
+        h1, h2, h3 {
+            color: #005A9C; background: white
+        }
+        h1 {
+            font: 170% sans-serif;
+            line-height: 110%;
+        }
+        h2 {
+            font: 140% sans-serif;
+            margin-top:40px;
+        }
+        h3 {
+            font: 120% sans-serif;
+            margin-top: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid navy;
+        }
+        h4 { font: bold 100% sans-serif }
+        h5 { font: italic 100% sans-serif }
+        h6 { font: small-caps 100% sans-serif }
+
+        body {
+            padding: 2em 70px 2em 70px;
+            margin: 0;
+            font-family: sans-serif;
+            color: black;
+            background: white;
+            background-position: top left;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            text-align: left;
+        }
+
+        section {
+            max-width: 1500px;
+        }
+
+        .figure {
+            margin-bottom: 20px;
+        }
+
+        :link { color: #00C; background: transparent }
+        :visited { color: #609; background: transparent }
+        a:active { color: #C00; background: transparent }
+
+        .sup-c,
+        .sup-op,
+        .sup-fp,
+        .sup-dp,
+        .sup-ap,
+        .sup-p,
+        .sup-ni,
+        .sup-con,
+        .sup-col {
+            cursor:help;
+        }
+
+        .sup-c {
+            color:orange;
+        }
+
+        .sup-op {
+            color:navy;
+        }
+
+        .sup-fp {
+            color:lightskyblue;
+        }
+
+        .sup-dp {
+            color:green;
+        }
+
+        .sup-ap {
+            color:darkred;
+        }
+
+        .sup-p {
+            color:black;
+        }
+
+        .sup-ni {
+            color:brown;
+        }
+
+        .sup-con {
+            color:orange;
+        }
+
+        .sup-col {
+            color:darkred;
+        }
+
+        sup {
+            margin-left: -3px;
+        }
+        code {
+            font-size: large;
+            color: darkred;
+        }
+
+        /* less prominent links for properties */
+        .proplink {
+            color: #336;
+            text-decoration: none;
+        }
+
+#toc {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    border: solid 1px navy;
+    font-size: small;
+    width: 180px;
+}
+#toc h3 {
+    margin-top: 5px;
+}
+
+#toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#toc .first > li {
+    margin-top: 5px;
+}
+
+#toc .second,
+#toc .third {
+    padding-left: 10px;
+}
+
+#content {
+    width: calc(100% - 150px);
+}
+
+.hover_property {
+    text-decoration: none;
+    border-bottom: dashed 1px;
+}
+
+.setclass {
+    list-style-type: none;
+}
+
+code{
+    word-wrap: break-word;
+  }
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  td {
+    word-wrap: break-word;
+  }
+	</style>
+    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4jbWPzStEURjG3yQLirlGKUnKFO45Z+SjmXvnnmthQcpCoVhYmD/AwmJiI3OvZuZc2U3UlKU0/gAslMw9JgvhHxAr2fko7r0jHSsl+TgbTz2Lt5731/MASEiJW9ONml2QyX6rsGalmnT74v8BDf12hxJfpV8d1uwNKUBYszabdFv84L8B9X0rESVmmUup2fme0cVhJWaZHw4NWL1SewEAfDe6H3Dy6Ll456WEJsRZS630MwCAOI20ei5OBpxse5zcBZw8eS4uPpfIuDiCainIg9umBCU0GZzgLZ9Hn31OgoATL+CkLDGB5H1OKj4nFd/FBxUXJ0UZNb4edw/6nLyJXaj5FeCVyPLNIVmYK8TG1IwWb16L1gEACAFV90ftoT8bdOX0EeyY99gxBXZMgRz6qGb1KantAACI0UvE6F5XJqEjpsdURouI0Vt5gGOUkUNnPu7ObGIIMfNaGqDmjDRi9FZldF1lRgYzeqUyeoiY4ag5Iy3RgOYRM8+/M2bG8efsO4hGrpmJseyMAAAAAElFTkSuQmCC" rel="icon" sizes="16x16" type="image/png">
+    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC40lEQVRYhe2UT0hUQRzHp6Iss1B3VZKIDbbdfW9mnoi4f3zzjkJQeOgS0SEIb1EWBGGlLLu460zQPQM1unUIIjA6rfpm6ZAhHjoIRVQUFUlEbG+euTsdXG1d3VL3bVD4g+9h+L35fT/8fvN7ADgY9aHY5fpIvK82HO9ysu66wxWOzbkjcekKx0a2ALYA/n2AGi3a6ArFezcidziecQygNhhrcUficjP6PwBqtGijKxy/thnVBePHywYoDsFhl53GV8SEcsTx4usCMLUewTVpc23BNvEzm6Neyf1+KcG2vwqwUjgrOJq2JmHftwmkVBRGTvncFodnbI7vChO/FRznCmHsNM7aHM9Yk7Df5iqsLMw9sMNOK2g+jS4IEz0UJv4iuJZb2RltWnB4UZqH6ioGAgAAGe5vtiZhtzDx7OoRadLmeM7m6IRjhnLMW2Vx1bA5GhAmnhIcz6/xNj4Ujsky8UspwfayjDPjsF2Y6L7N8Vzx/BfP+KPg6LbgSqd8DnfJW2CnbaLhfH5ephpqygJYvQU4Z3P82TLRsDDhUTnmrSq+Y3N0Mg+Xldy/zwEAnLMWZ3pHpNExmfLs/t0dOdVcbT0JeKxUwFP2VljjqiE47Jp53LTXNxhsUZjerTByXWX6VZWRs/4bIQ2ACv+UAomgDzLCISNZxAxZKMhIDjLy1JfsaK+I+eGBUBNk5E2x8RogX/PdcDZUqieWTSh5D6nOVKqfhoycUmlHFFIyu5RXqf7AcQDISCpv/tqbMBqK883RtmpISRoxQyJKPgGn3wNk5NEigDFa6hslqV/Kj+FdBQD0bshIDlKSLlVcoWQo36UhR80BAMB73lulMn0EMpJTqD6qJiOt3mho/8GbkT2BZNgDB/V+RI0fkOrT3kRIVQbaDizJm2hdNbINBxwk5xAj3yEjuV9rZ1iIkgxixkLBA83mz8uCjLwoGwAx0vOnFSy5mtR4VTaAQvVORMnwZgSpzkrV/QmdE2tKe46+MQAAAABJRU5ErkJggg==" rel="icon" sizes="32x32" type="image/png">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+</head>
+<body class="container">
+<div id="content">
+    {%if ontology%}
+        <iframe src="{{nssub}}/{{nsname}}" title="{{nsname}} ontology"></iframe> 
+    {%endif%}
+    {%if vocab%}
+        <iframe src="{{nssub}}/{{nsname}}_vocab" title="{{nsname}} vocabulary"></iframe> 
+    {%endif%}
+</div>
+<div id="pylode">
+  <p>made by 
+    <a href="https://github.com/vliz-be-opsci/pylode-to-pages">
+      <span id="p">Pylode</span>
+      <span id="y">-To-Pages</span>
+      <span>@VLIZ</span>
+    </a>
+  </p>
+</div>
+</body>
+</html>
+"""
+
 
 EMBEDDED_YAML_LOGCONF = """
 version: 1
@@ -436,7 +734,7 @@ def extract_pub_dict(od: OntDoc):
 
 def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"ontology to process: {nssub}/{nsname} in {nsfolder}")
-
+    
     nsfolder = Path(nsfolder)
     outfolder = Path(outfolder)
     nspath = (nsfolder / nssub / nsname).resolve()
@@ -508,6 +806,30 @@ def publish_misc(baseuri, nsfolder, outfolder ):
         if otherfile.exists():
             shutil.copy(otherfile, outfolder / other)
     #TODO consider generating CNAME file with content derived from baseuri
+
+def publish_combined_index(baseuri, nsfolder, outfolder, logconf=None):
+    enable_logging(logconf)
+    #default target folder to input folder
+    outfolder = nsfolder if outfolder is None else outfolder
+    outfolder = Path(outfolder).resolve()
+    nsfolder = Path(nsfolder).resolve()
+    log.debug(f"publishing combined index from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
+    
+    #run over nsfolder and process ontology files
+    for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+        for nsname in nsfiles:
+            if nsname.endswith(".ttl"):
+                # take the first part of ttl file as the basname
+                name_file = nsname.split(".")[0]
+                #check if there is a corresponding csv file
+                for nsotherfiles in nsfiles:
+                    log.debug(nsotherfiles)
+                    if (nsotherfiles == name_file + ".csv"):
+                        #if so, process it
+                        log.debug(f"processing {nsname} in {folder} as a combined index")
+                log.debug(f"ttl file at {folder} - {nsname} when walking {nsfolder}")
+                
+
     
 def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
@@ -523,8 +845,8 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.debug(f"input_file={input_file}")
         
         #check if the output folder exists, if not create it
-        folder_name = nsname.replace(".csv", "").replace(".ttl", "")+"_vocab"
-        output_folder = outfolder / nssub / folder_name
+        folder_name = "vocab"
+        output_folder = outfolder / nssub / nsname.replace(".csv", "") /folder_name
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
             output_folder.mkdir(parents=True)
@@ -554,7 +876,6 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
         source = {"_": SourceFactory.make_source(second_args["input"])}
         sink = SinkFactory.make_sink(second_args["output"], force_output=True)
         service.process(second_args["template_name"], source, settings, sink)
-        
         
         toreturn["error"] = False
     except Exception as e:
@@ -662,8 +983,12 @@ def main():
     ontos = publish_ontologies(baseuri, nsfolder, outfolder, logconf)
     vocabs= publish_vocabs(baseuri, nsfolder, outfolder, logconf)
 
+    # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
+    publish_combined_index(baseuri, nsfolder, outfolder, logconf)
+    
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")
+    print(f"::set-output name=vocabs::{vocabs.keys()}")
 
 
 if __name__ == "__main__":
