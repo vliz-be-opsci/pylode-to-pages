@@ -514,17 +514,25 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
     toreturn = dict()
     try:
-        output_name_html = nsname.replace(".csv", ".html")
+        output_name_html = "index.html"
         output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
         template_path = "templates"
         template_name_html = "template_html.html"
         template_name_ttl = "template_ttl.ttl"
         input_file = nsfolder / nssub / nsname
         log.debug(f"input_file={input_file}")
+        
+        #check if the output folder exists, if not create it
+        folder_name = nsname.replace(".csv", "").replace(".ttl", "")+"_vocab"
+        output_folder = outfolder / nssub / folder_name
+        log.debug(f"output_folder={output_folder}")
+        if not output_folder.exists():
+            output_folder.mkdir(parents=True)
+        
         #html generation
         args = {
             "input":input_file.__str__(),
-            "output":(outfolder / nssub / output_name_html).__str__(),
+            "output":(output_folder / output_name_html).__str__(),
             "template_path":template_path,
             "template_name":template_name_html
         }
@@ -537,7 +545,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
         #ttl generation
         second_args = {
             "input":input_file.__str__(),
-            "output":(outfolder / nssub / output_name_ttl).__str__(),
+            "output":(output_folder / output_name_ttl).__str__(),
             "template_path":template_path,
             "template_name":template_name_ttl
         }
