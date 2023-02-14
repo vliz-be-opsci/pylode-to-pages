@@ -311,7 +311,7 @@ code{
         {%if ontology%}
             <div class="concept entity" id="{{ontology}}">
                 <h3 class="title">
-                    <a href="{{ontology}}">{{nsname}} ontology/</a>
+                    <a href="{{ontology}}">{{ontology}}/</a>
                     <sup class="sup-op" title="ontology">Ontology</sup>
                 </h3>
                 <table>
@@ -327,7 +327,7 @@ code{
         {%if vocabulary%}
             <div class="concept entity" id="{{vocabulary}}">
                 <h3 class="title">
-                    <a href="{{vocabulary}}">{{nsname}} vocabulary/</a>
+                    <a href="{{vocabulary}}">{{vocabulary}}/</a>
                     <sup class="sup-op" title="vocabulary">Vocabulary</sup>
                 </h3>
                 <table>
