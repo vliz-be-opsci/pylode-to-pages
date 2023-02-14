@@ -25,336 +25,7 @@ from pylode import (
 )
 from itertools import chain
 
-
 log = logging.getLogger('pylode-to-pages')
-
-EMBEDDED_INDEX_IFRAME_TEMPLATE = """
-<html>
-<head>
-  <title>Overview of {{baseuri}} namespace</title>
-  <style>
-        #pylode {
-            position: fixed;
-            top: 170px;
-            left: -150px;
-            font-size: small;
-            transform: rotate(-90deg);
-            color: grey;
-        }
-        html {
-            scroll-behavior: smooth;
-        }
-        #pylode a {
-            font-size: 2em;
-            font-weight: bold;
-            text-decoration: none;
-            color: #005A9C;
-        }
-        #pylode a:hover {
-            color: #333;
-        }
-        #pylode #p {
-            color: #329545;
-        }
-        #pylode #y {
-            color: #f9cb33;
-        }
-        #pylode #version {
-            font-size: 1.0em;
-        }
-
-        .cardinality {
-            font-style: italic;
-            color: #aa00aa;
-        }
-
-        dl {
-            /*border: 1px solid navy;*/
-            /*padding:5px;*/
-        }
-
-        dt {
-            font-weight: bold;
-            padding: 0;
-        }
-
-        dd {
-            margin-bottom: 10px;
-            padding-top: 7px;
-        }
-
-        #metadata ul,
-        #classes ul {
-            list-style-type: none;
-        }
-
-        #metadata ul li,
-        #classes ul li {
-            margin-left: -40px;
-        }
-
-        ul.hlist {
-            list-style-type: none;
-            border: 1px solid navy;
-            padding:5px;
-            background-color: #F4FFFF;
-        }
-
-        ul.hierarchy {
-            border: 1px solid navy;
-            padding: 5px 25px 5px 25px;
-            background-color: #F4FFFF;
-        }
-
-
-        ul.hlist li {
-            display: inline;
-            margin-right: 10px;
-        }
-
-        .entity {
-            border: 1px solid navy;
-            margin:5px 0 5px 0;
-            padding: 5px;
-        }
-
-        .entity th {
-            width: 150px;
-            vertical-align: top;
-        }
-
-        .entity th,
-        .entity td {
-            padding-bottom: 20px;
-        }
-
-        .entity table th {
-            text-align: left;
-        }
-
-        section#overview img {
-            max-width: 1000px;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            text-align: left
-        }
-        h1, h2, h3 {
-            color: #005A9C; background: white
-        }
-        h1 {
-            font: 170% sans-serif;
-            line-height: 110%;
-        }
-        h2 {
-            font: 140% sans-serif;
-            margin-top:40px;
-        }
-        h3 {
-            font: 120% sans-serif;
-            margin-top: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid navy;
-        }
-        h4 { font: bold 100% sans-serif }
-        h5 { font: italic 100% sans-serif }
-        h6 { font: small-caps 100% sans-serif }
-
-        body {
-            padding: 2em 70px 2em 70px;
-            margin: 0;
-            font-family: sans-serif;
-            color: black;
-            background: white;
-            background-position: top left;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            text-align: left;
-        }
-
-        section {
-            max-width: 1500px;
-        }
-
-        .figure {
-            margin-bottom: 20px;
-        }
-
-        :link { color: #00C; background: transparent }
-        :visited { color: #609; background: transparent }
-        a:active { color: #C00; background: transparent }
-
-        .sup-c,
-        .sup-op,
-        .sup-fp,
-        .sup-dp,
-        .sup-ap,
-        .sup-p,
-        .sup-ni,
-        .sup-con,
-        .sup-col {
-            cursor:help;
-        }
-
-        .sup-c {
-            color:orange;
-        }
-
-        .sup-op {
-            color:navy;
-        }
-
-        .sup-fp {
-            color:lightskyblue;
-        }
-
-        .sup-dp {
-            color:green;
-        }
-
-        .sup-ap {
-            color:darkred;
-        }
-
-        .sup-p {
-            color:black;
-        }
-
-        .sup-ni {
-            color:brown;
-        }
-
-        .sup-con {
-            color:orange;
-        }
-
-        .sup-col {
-            color:darkred;
-        }
-
-        sup {
-            margin-left: -3px;
-        }
-        code {
-            font-size: large;
-            color: darkred;
-        }
-
-        /* less prominent links for properties */
-        .proplink {
-            color: #336;
-            text-decoration: none;
-        }
-
-#toc {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 2;
-    height: 100%;
-    overflow-y: auto;
-    padding: 10px;
-    border: solid 1px navy;
-    font-size: small;
-    width: 180px;
-}
-#toc h3 {
-    margin-top: 5px;
-}
-
-#toc ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-#toc .first > li {
-    margin-top: 5px;
-}
-
-#toc .second,
-#toc .third {
-    padding-left: 10px;
-}
-
-#content {
-    width: calc(100% - 150px);
-}
-
-.hover_property {
-    text-decoration: none;
-    border-bottom: dashed 1px;
-}
-
-.setclass {
-    list-style-type: none;
-}
-
-code{
-    word-wrap: break-word;
-  }
-  table {
-    table-layout: fixed;
-    width: 100%;
-  }
-  td {
-    word-wrap: break-word;
-  }
-	</style>
-    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4jbWPzStEURjG3yQLirlGKUnKFO45Z+SjmXvnnmthQcpCoVhYmD/AwmJiI3OvZuZc2U3UlKU0/gAslMw9JgvhHxAr2fko7r0jHSsl+TgbTz2Lt5731/MASEiJW9ONml2QyX6rsGalmnT74v8BDf12hxJfpV8d1uwNKUBYszabdFv84L8B9X0rESVmmUup2fme0cVhJWaZHw4NWL1SewEAfDe6H3Dy6Ll456WEJsRZS630MwCAOI20ei5OBpxse5zcBZw8eS4uPpfIuDiCainIg9umBCU0GZzgLZ9Hn31OgoATL+CkLDGB5H1OKj4nFd/FBxUXJ0UZNb4edw/6nLyJXaj5FeCVyPLNIVmYK8TG1IwWb16L1gEACAFV90ftoT8bdOX0EeyY99gxBXZMgRz6qGb1KantAACI0UvE6F5XJqEjpsdURouI0Vt5gGOUkUNnPu7ObGIIMfNaGqDmjDRi9FZldF1lRgYzeqUyeoiY4ag5Iy3RgOYRM8+/M2bG8efsO4hGrpmJseyMAAAAAElFTkSuQmCC" rel="icon" sizes="16x16" type="image/png">
-    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC40lEQVRYhe2UT0hUQRzHp6Iss1B3VZKIDbbdfW9mnoi4f3zzjkJQeOgS0SEIb1EWBGGlLLu460zQPQM1unUIIjA6rfpm6ZAhHjoIRVQUFUlEbG+euTsdXG1d3VL3bVD4g+9h+L35fT/8fvN7ADgY9aHY5fpIvK82HO9ysu66wxWOzbkjcekKx0a2ALYA/n2AGi3a6ArFezcidziecQygNhhrcUficjP6PwBqtGijKxy/thnVBePHywYoDsFhl53GV8SEcsTx4usCMLUewTVpc23BNvEzm6Neyf1+KcG2vwqwUjgrOJq2JmHftwmkVBRGTvncFodnbI7vChO/FRznCmHsNM7aHM9Yk7Df5iqsLMw9sMNOK2g+jS4IEz0UJv4iuJZb2RltWnB4UZqH6ioGAgAAGe5vtiZhtzDx7OoRadLmeM7m6IRjhnLMW2Vx1bA5GhAmnhIcz6/xNj4Ujsky8UspwfayjDPjsF2Y6L7N8Vzx/BfP+KPg6LbgSqd8DnfJW2CnbaLhfH5ephpqygJYvQU4Z3P82TLRsDDhUTnmrSq+Y3N0Mg+Xldy/zwEAnLMWZ3pHpNExmfLs/t0dOdVcbT0JeKxUwFP2VljjqiE47Jp53LTXNxhsUZjerTByXWX6VZWRs/4bIQ2ACv+UAomgDzLCISNZxAxZKMhIDjLy1JfsaK+I+eGBUBNk5E2x8RogX/PdcDZUqieWTSh5D6nOVKqfhoycUmlHFFIyu5RXqf7AcQDISCpv/tqbMBqK883RtmpISRoxQyJKPgGn3wNk5NEigDFa6hslqV/Kj+FdBQD0bshIDlKSLlVcoWQo36UhR80BAMB73lulMn0EMpJTqD6qJiOt3mho/8GbkT2BZNgDB/V+RI0fkOrT3kRIVQbaDizJm2hdNbINBxwk5xAj3yEjuV9rZ1iIkgxixkLBA83mz8uCjLwoGwAx0vOnFSy5mtR4VTaAQvVORMnwZgSpzkrV/QmdE2tKe46+MQAAAABJRU5ErkJggg==" rel="icon" sizes="32x32" type="image/png">
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-</head>
-<body class="container">
-<div id="content">
-    <div class="section" id="ontologies_and_vocabs">
-        <h2>Ontologies and vocabularies</h2>
-        {%if ontology%}
-            <div class="concept entity" id="{{ontology}}">
-                <h3 class="title">
-                    <a href="{{ontology}}">{{ontology}}/</a>
-                    <sup class="sup-op" title="ontology">Ontology</sup>
-                </h3>
-                <table>
-                    <tr>
-                        <th>IRI</th>
-                        <td>
-                            <code>{{baseuri}}/{{nssub}}/{{ontology}}</code>
-                        </td>
-                    </tr>
-                </table>  
-            </div>
-        {%endif%}
-        {%if vocabulary%}
-            <div class="concept entity" id="{{vocabulary}}">
-                <h3 class="title">
-                    <a href="{{vocabulary}}">{{vocabulary}}/</a>
-                    <sup class="sup-op" title="vocabulary">Vocabulary</sup>
-                </h3>
-                <table>
-                    <tr>
-                        <th>IRI</th>
-                        <td>
-                            <code>{{baseuri}}/{{nssub}}/{{vocabulary}}</code>
-                        </td>
-                    </tr>
-                </table>  
-            </div>
-        {%endif%}
-    </div>
-</div>
-<div id="pylode">
-  <p>made by 
-    <a href="https://github.com/vliz-be-opsci/pylode-to-pages">
-      <span id="p">Pylode</span>
-      <span id="y">-To-Pages</span>
-      <span>@VLIZ</span>
-    </a>
-  </p>
-</div>
-</body>
-</html>
-"""
-
 
 EMBEDDED_YAML_LOGCONF = """
 version: 1
@@ -376,360 +47,6 @@ root:
   handlers: [stderr]
 """
 
-
-EMBEDDED_INDEX_TEMPLATE = """
-<html>
-<head>
-  <title>Overview of {{baseuri}} namespace</title>
-  <style>
-        #pylode {
-            position: fixed;
-            top: 170px;
-            left: -150px;
-            font-size: small;
-            transform: rotate(-90deg);
-            color: grey;
-        }
-        html {
-            scroll-behavior: smooth;
-        }
-        #pylode a {
-            font-size: 2em;
-            font-weight: bold;
-            text-decoration: none;
-            color: #005A9C;
-        }
-        #pylode a:hover {
-            color: #333;
-        }
-        #pylode #p {
-            color: #329545;
-        }
-        #pylode #y {
-            color: #f9cb33;
-        }
-        #pylode #version {
-            font-size: 1.0em;
-        }
-
-        .cardinality {
-            font-style: italic;
-            color: #aa00aa;
-        }
-
-        dl {
-            /*border: 1px solid navy;*/
-            /*padding:5px;*/
-        }
-
-        dt {
-            font-weight: bold;
-            padding: 0;
-        }
-
-        dd {
-            margin-bottom: 10px;
-            padding-top: 7px;
-        }
-
-        #metadata ul,
-        #classes ul {
-            list-style-type: none;
-        }
-
-        #metadata ul li,
-        #classes ul li {
-            margin-left: -40px;
-        }
-
-        ul.hlist {
-            list-style-type: none;
-            border: 1px solid navy;
-            padding:5px;
-            background-color: #F4FFFF;
-        }
-
-        ul.hierarchy {
-            border: 1px solid navy;
-            padding: 5px 25px 5px 25px;
-            background-color: #F4FFFF;
-        }
-
-
-        ul.hlist li {
-            display: inline;
-            margin-right: 10px;
-        }
-
-        .entity {
-            border: 1px solid navy;
-            margin:5px 0 5px 0;
-            padding: 5px;
-        }
-
-        .entity th {
-            width: 150px;
-            vertical-align: top;
-        }
-
-        .entity th,
-        .entity td {
-            padding-bottom: 20px;
-        }
-
-        .entity table th {
-            text-align: left;
-        }
-
-        section#overview img {
-            max-width: 1000px;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            text-align: left
-        }
-        h1, h2, h3 {
-            color: #005A9C; background: white
-        }
-        h1 {
-            font: 170% sans-serif;
-            line-height: 110%;
-        }
-        h2 {
-            font: 140% sans-serif;
-            margin-top:40px;
-        }
-        h3 {
-            font: 120% sans-serif;
-            margin-top: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid navy;
-        }
-        h4 { font: bold 100% sans-serif }
-        h5 { font: italic 100% sans-serif }
-        h6 { font: small-caps 100% sans-serif }
-
-        body {
-            padding: 2em 70px 2em 70px;
-            margin: 0;
-            font-family: sans-serif;
-            color: black;
-            background: white;
-            background-position: top left;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            text-align: left;
-        }
-
-        section {
-            max-width: 1500px;
-        }
-
-        .figure {
-            margin-bottom: 20px;
-        }
-
-        :link { color: #00C; background: transparent }
-        :visited { color: #609; background: transparent }
-        a:active { color: #C00; background: transparent }
-
-        .sup-c,
-        .sup-op,
-        .sup-fp,
-        .sup-dp,
-        .sup-ap,
-        .sup-p,
-        .sup-ni,
-        .sup-con,
-        .sup-col {
-            cursor:help;
-        }
-
-        .sup-c {
-            color:orange;
-        }
-
-        .sup-op {
-            color:navy;
-        }
-
-        .sup-fp {
-            color:lightskyblue;
-        }
-
-        .sup-dp {
-            color:green;
-        }
-
-        .sup-ap {
-            color:darkred;
-        }
-
-        .sup-p {
-            color:black;
-        }
-
-        .sup-ni {
-            color:brown;
-        }
-
-        .sup-con {
-            color:orange;
-        }
-
-        .sup-col {
-            color:darkred;
-        }
-
-        sup {
-            margin-left: -3px;
-        }
-        code {
-            font-size: large;
-            color: darkred;
-        }
-
-        /* less prominent links for properties */
-        .proplink {
-            color: #336;
-            text-decoration: none;
-        }
-
-#toc {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 2;
-    height: 100%;
-    overflow-y: auto;
-    padding: 10px;
-    border: solid 1px navy;
-    font-size: small;
-    width: 180px;
-}
-#toc h3 {
-    margin-top: 5px;
-}
-
-#toc ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-#toc .first > li {
-    margin-top: 5px;
-}
-
-#toc .second,
-#toc .third {
-    padding-left: 10px;
-}
-
-#content {
-    width: calc(100% - 150px);
-}
-
-.hover_property {
-    text-decoration: none;
-    border-bottom: dashed 1px;
-}
-
-.setclass {
-    list-style-type: none;
-}
-
-code{
-    word-wrap: break-word;
-  }
-  table {
-    table-layout: fixed;
-    width: 100%;
-  }
-  td {
-    word-wrap: break-word;
-  }
-	</style>
-    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4jbWPzStEURjG3yQLirlGKUnKFO45Z+SjmXvnnmthQcpCoVhYmD/AwmJiI3OvZuZc2U3UlKU0/gAslMw9JgvhHxAr2fko7r0jHSsl+TgbTz2Lt5731/MASEiJW9ONml2QyX6rsGalmnT74v8BDf12hxJfpV8d1uwNKUBYszabdFv84L8B9X0rESVmmUup2fme0cVhJWaZHw4NWL1SewEAfDe6H3Dy6Ll456WEJsRZS630MwCAOI20ei5OBpxse5zcBZw8eS4uPpfIuDiCainIg9umBCU0GZzgLZ9Hn31OgoATL+CkLDGB5H1OKj4nFd/FBxUXJ0UZNb4edw/6nLyJXaj5FeCVyPLNIVmYK8TG1IwWb16L1gEACAFV90ftoT8bdOX0EeyY99gxBXZMgRz6qGb1KantAACI0UvE6F5XJqEjpsdURouI0Vt5gGOUkUNnPu7ObGIIMfNaGqDmjDRi9FZldF1lRgYzeqUyeoiY4ag5Iy3RgOYRM8+/M2bG8efsO4hGrpmJseyMAAAAAElFTkSuQmCC" rel="icon" sizes="16x16" type="image/png">
-    <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC40lEQVRYhe2UT0hUQRzHp6Iss1B3VZKIDbbdfW9mnoi4f3zzjkJQeOgS0SEIb1EWBGGlLLu460zQPQM1unUIIjA6rfpm6ZAhHjoIRVQUFUlEbG+euTsdXG1d3VL3bVD4g+9h+L35fT/8fvN7ADgY9aHY5fpIvK82HO9ysu66wxWOzbkjcekKx0a2ALYA/n2AGi3a6ArFezcidziecQygNhhrcUficjP6PwBqtGijKxy/thnVBePHywYoDsFhl53GV8SEcsTx4usCMLUewTVpc23BNvEzm6Neyf1+KcG2vwqwUjgrOJq2JmHftwmkVBRGTvncFodnbI7vChO/FRznCmHsNM7aHM9Yk7Df5iqsLMw9sMNOK2g+jS4IEz0UJv4iuJZb2RltWnB4UZqH6ioGAgAAGe5vtiZhtzDx7OoRadLmeM7m6IRjhnLMW2Vx1bA5GhAmnhIcz6/xNj4Ujsky8UspwfayjDPjsF2Y6L7N8Vzx/BfP+KPg6LbgSqd8DnfJW2CnbaLhfH5ephpqygJYvQU4Z3P82TLRsDDhUTnmrSq+Y3N0Mg+Xldy/zwEAnLMWZ3pHpNExmfLs/t0dOdVcbT0JeKxUwFP2VljjqiE47Jp53LTXNxhsUZjerTByXWX6VZWRs/4bIQ2ACv+UAomgDzLCISNZxAxZKMhIDjLy1JfsaK+I+eGBUBNk5E2x8RogX/PdcDZUqieWTSh5D6nOVKqfhoycUmlHFFIyu5RXqf7AcQDISCpv/tqbMBqK883RtmpISRoxQyJKPgGn3wNk5NEigDFa6hslqV/Kj+FdBQD0bshIDlKSLlVcoWQo36UhR80BAMB73lulMn0EMpJTqD6qJiOt3mho/8GbkT2BZNgDB/V+RI0fkOrT3kRIVQbaDizJm2hdNbINBxwk5xAj3yEjuV9rZ1iIkgxixkLBA83mz8uCjLwoGwAx0vOnFSy5mtR4VTaAQvVORMnwZgSpzkrV/QmdE2tKe46+MQAAAABJRU5ErkJggg==" rel="icon" sizes="32x32" type="image/png">
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-</head>
-<body class="container">
-<div id="content">
-    <div class="section" id="metadata">
-        <h1>Overview of described vocabularies in <a href="{{baseuri}}">this namespace</a>.</h1>
-    </div>
-    <div class="section" id="ontologies_and_vocabs">
-        <h2>Ontologies and vocabularies</h2>
-        {%for key,onto in ontos.items()%}
-            <div class="concept entity" id="{{onto.title}}">
-                <h3 class="title">
-                    <a href="{{onto.relref}}/index">{{onto.name}}/</a>
-                    <sup class="sup-op" title="ontology">O</sup>
-                </h3>
-                <table>
-                    <tr>
-                        <th>IRI</th>
-                        <td>
-                            <code>{{baseuri}}/{{onto.relref}}</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <span class="hover_property">Title</span>
-                        </th>
-                        <td>
-                            <p>{{onto.title}}</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <span class="hover_property">Last modified</span>
-                        </th>
-                        <td>
-                            <p>{{onto.lastmod}}</p>
-                        </td>
-                    </tr>
-                </table>  
-            </div>
-        {%endfor %}
-    </div>
-</div>
-<div id="pylode">
-  <p>made by 
-    <a href="https://github.com/vliz-be-opsci/pylode-to-pages">
-      <span id="p">Pylode</span>
-      <span id="y">-To-Pages</span>
-      <span>@VLIZ</span>
-    </a>
-  </p>
-</div>
-<div id="toc">
-  <h3>Table of Contents</h3>
-  <ul class="first">
-    <li>
-      <h4>
-        <a href="#metadata">Metadata</a>
-      </h4>
-    </li>
-    <li>
-      <h4>
-        <a href="#ontologies_and_vocabs">Ontologies and vocabularies</a>
-      </h4>
-      <ul class="second">
-        {%for key,onto in ontos.items()%}
-        <li>
-          <a href="#{{onto.title}}">{{onto.name}}</a>
-        <li>
-        {% endfor %}
-      </ul>
-    </li>
-  </ul>
-</div>
-</body>
-</html>
-"""
-
-
 def enable_logging(logconf):
     if logconf is not None and Path(logconf).is_file():
         with open(logconf, 'r') as yml_logconf:
@@ -737,7 +54,6 @@ def enable_logging(logconf):
     else:
         logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
         log.warning(f"logconf file '{logconf}' does not exist. Embedded logging config applied as fallback.")
-
 
 def extract_pub_dict(od: OntDoc):
     def ont_prop(ont, predicate):
@@ -758,7 +74,6 @@ def extract_pub_dict(od: OntDoc):
         return ont_prop(od.ont, DCTERMS.modified)
 
     return dict(title=od_title(), lastmod=od_lastmod())
-
 
 def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"ontology to process: {nssub}/{nsname} in {nsfolder}")
@@ -837,7 +152,7 @@ def publish_misc(baseuri, nsfolder, outfolder ):
             shutil.copy(otherfile, outfolder / other)
     #TODO consider generating CNAME file with content derived from baseuri
 
-def publish_combined_index(baseuri, nsfolder, outfolder, logconf=None):
+def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=None):
     enable_logging(logconf)
     #default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
@@ -891,24 +206,23 @@ def publish_combined_index(baseuri, nsfolder, outfolder, logconf=None):
     combined = dict()
     combined_in_err = set()
     for item in processing_list:
-        nscombined = combined_index_pub(baseuri, nsfolder, item["nssub"], item["ontologies"], outfolder, item["ontologies"], item["vocabularies"])
+        nscombined = combined_index_pub(baseuri, nsfolder, item["nssub"], item["ontologies"], outfolder, item["ontologies"], item["vocabularies"], template_path)
         if nscombined["error"]:
             log.error(f"failed to process combined index for {item['folder']}")
             log.error(f"error message: {nscombined['error_message']}")
             combined_in_err.add(item["folder"])
         combined[item["folder"]] = nscombined
-    return combined
-        
+    return combined   
 
-def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vocabulary):
+def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vocabulary, template_path):
     log.debug(f"combined index to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}/{nssub}, ontology={ontology}, vocabulary={vocabulary}")
     toreturn = dict()
     try:
         # generate a proper index.html file using an embedded jinja-template
         prms = dict(ontology=ontology, baseuri=baseuri, vocabulary=vocabulary, nsname=nsname, nssub=nssub)
-        templates_env = Environment(loader=BaseLoader)
-        template = templates_env.from_string(EMBEDDED_INDEX_IFRAME_TEMPLATE)
+        templates_env = Environment(loader=FileSystemLoader(template_path))
+        template = templates_env.get_template("template_combined_index.html")
         outcome = template.render(prms)
         log.debug(f"> INDEX --> context for template == {prms}")
         outindexpath = outfolder / nssub / "index.html"
@@ -920,15 +234,10 @@ def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vo
         toreturn["error"] = True
         log.debug(f"> INDEX --> error while processing combined index for {nssub}/{nsname}")
         log.error(e)
-        toretrun["error_message"] = str(e)
+        toreturn["error_message"] = str(e)
     finally:
         return toreturn
-    
-    
-                
-                
-
-    
+     
 def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
@@ -982,7 +291,6 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     finally:
         return toreturn
     
-    
 def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
     enable_logging(logconf)
     
@@ -1013,7 +321,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
                 
     return vocabs
 
-def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
+def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None):
     enable_logging(logconf)
 
     # default target folder to input folder
@@ -1044,8 +352,8 @@ def publish_ontologies(baseuri, nsfolder, outfolder, logconf=None):
 
     # generate a proper index.html file using an embedded jinja-template
     prms = dict(ontos=ontos, baseuri=baseuri)
-    templates_env = Environment(loader=BaseLoader)
-    template = templates_env.from_string(EMBEDDED_INDEX_TEMPLATE)
+    templates_env = Environment(loader=FileSystemLoader(str(template_path)))
+    template = templates_env.get_template("template_index.html")
     outcome = template.render(prms)
     log.debug(f"> INDEX --> context for template == {prms}")
     outindexpath = outfolder / "index.html"
@@ -1082,16 +390,15 @@ def main():
 
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
-    ontos = publish_ontologies(baseuri, nsfolder, outfolder, logconf)
+    ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf)
     vocabs= publish_vocabs(baseuri, nsfolder, outfolder, template_path ,logconf)
 
     # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
-    publish_combined_index(baseuri, nsfolder, outfolder, logconf)
+    publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
     
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")
     print(f"::set-output name=vocabs::{vocabs.keys()}")
-
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,6 @@ outfolder = parent / 'new_out'
 shutil.rmtree(outfolder, ignore_errors=True)
 nsfolder = parent / 'new_in'
 baseuri = 'https://example.org/pylode2pages-test'
-ontos = ep.publish_ontologies(baseuri, str(nsfolder), str(outfolder))
-vocabs = ep.publish_vocabs(baseuri, str(nsfolder), str(outfolder))
-ep.publish_combined_index(baseuri, str(nsfolder), str(outfolder))
+ontos = ep.publish_ontologies(baseuri, str(nsfolder), str(outfolder), "templates")
+vocabs = ep.publish_vocabs(baseuri, str(nsfolder), str(outfolder), "templates")
+ep.publish_combined_index(baseuri, str(nsfolder), str(outfolder), "templates")

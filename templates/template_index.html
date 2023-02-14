@@ -275,40 +275,43 @@ code{
 </head>
 <body class="container">
 <div id="content">
+    <div class="section" id="metadata">
+        <h1>Overview of described vocabularies in <a href="{{baseuri}}">this namespace</a>.</h1>
+    </div>
     <div class="section" id="ontologies_and_vocabs">
         <h2>Ontologies and vocabularies</h2>
-        {%if ontology%}
-            <div class="concept entity" id="{{ontology}}">
+        {%for key,onto in ontos.items()%}
+            <div class="concept entity" id="{{onto.title}}">
                 <h3 class="title">
-                    <a href="{{ontology}}">{{ontology}}/</a>
-                    <sup class="sup-op" title="ontology">Ontology</sup>
+                    <a href="{{onto.relref}}/index">{{onto.name}}/</a>
+                    <sup class="sup-op" title="ontology">O</sup>
                 </h3>
                 <table>
                     <tr>
                         <th>IRI</th>
                         <td>
-                            <code>{{baseuri}}/{{nssub}}/{{ontology}}</code>
+                            <code>{{baseuri}}/{{onto.relref}}</code>
                         </td>
                     </tr>
-                </table>  
-            </div>
-        {%endif%}
-        {%if vocabulary%}
-            <div class="concept entity" id="{{vocabulary}}">
-                <h3 class="title">
-                    <a href="{{vocabulary}}">{{vocabulary}}/</a>
-                    <sup class="sup-op" title="vocabulary">Vocabulary</sup>
-                </h3>
-                <table>
                     <tr>
-                        <th>IRI</th>
+                        <th>
+                            <span class="hover_property">Title</span>
+                        </th>
                         <td>
-                            <code>{{baseuri}}/{{nssub}}/{{vocabulary}}</code>
+                            <p>{{onto.title}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <span class="hover_property">Last modified</span>
+                        </th>
+                        <td>
+                            <p>{{onto.lastmod}}</p>
                         </td>
                     </tr>
                 </table>  
             </div>
-        {%endif%}
+        {%endfor %}
     </div>
 </div>
 <div id="pylode">
@@ -319,6 +322,28 @@ code{
       <span>@VLIZ</span>
     </a>
   </p>
+</div>
+<div id="toc">
+  <h3>Table of Contents</h3>
+  <ul class="first">
+    <li>
+      <h4>
+        <a href="#metadata">Metadata</a>
+      </h4>
+    </li>
+    <li>
+      <h4>
+        <a href="#ontologies_and_vocabs">Ontologies and vocabularies</a>
+      </h4>
+      <ul class="second">
+        {%for key,onto in ontos.items()%}
+        <li>
+          <a href="#{{onto.title}}">{{onto.name}}</a>
+        <li>
+        {% endfor %}
+      </ul>
+    </li>
+  </ul>
 </div>
 </body>
 </html>
