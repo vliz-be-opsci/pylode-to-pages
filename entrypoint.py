@@ -307,12 +307,41 @@ code{
 </head>
 <body class="container">
 <div id="content">
-    {%if ontology%}
-        <iframe src="{{nssub}}/{{nsname}}" title="{{nsname}} ontology"></iframe> 
-    {%endif%}
-    {%if vocab%}
-        <iframe src="{{nssub}}/{{nsname}}_vocab" title="{{nsname}} vocabulary"></iframe> 
-    {%endif%}
+    <div class="section" id="ontologies_and_vocabs">
+        <h2>Ontologies and vocabularies</h2>
+        {%if ontology%}
+            <div class="concept entity" id="{{ontology}}">
+                <h3 class="title">
+                    <a href="{{ontology}}">{{nsname}} ontology/</a>
+                    <sup class="sup-op" title="ontology">Ontology</sup>
+                </h3>
+                <table>
+                    <tr>
+                        <th>IRI</th>
+                        <td>
+                            <code>{{baseuri}}/{{nssub}}/{{ontology}}</code>
+                        </td>
+                    </tr>
+                </table>  
+            </div>
+        {%endif%}
+        {%if vocabulary%}
+            <div class="concept entity" id="{{vocabulary}}">
+                <h3 class="title">
+                    <a href="{{vocabulary}}">{{nsname}} ontology/</a>
+                    <sup class="sup-op" title="vocabulary">Vocabulary</sup>
+                </h3>
+                <table>
+                    <tr>
+                        <th>IRI</th>
+                        <td>
+                            <code>{{baseuri}}/{{nssub}}/{{vocabulary}}</code>
+                        </td>
+                    </tr>
+                </table>  
+            </div>
+        {%endif%}
+    </div>
 </div>
 <div id="pylode">
   <p>made by 
@@ -743,10 +772,12 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
 
     # extract name for {{ self }} from filename
     name = str(Path(nsname).stem)
+    # I changed the index.html to name.html since I will be making the index.html in the publish combined index function
+    name_html = name + ".html"
     # produce html path and index-path
     outhtmlpath = (outfolder / nssub / f"{name}.html").resolve()
     log.debug(f"> {name} --> outhtmlpath == '{outhtmlpath}'")
-    outindexpath = (outfolder / nssub / name).resolve() / "index.html"
+    outindexpath = (outfolder / nssub / name).resolve() / name_html
     log.debug(f"> {name} --> outindexpath == '{outindexpath}'")
 
     # and finally prefix it with the nssub if relevant to produce the jinja {{name}}
@@ -815,19 +846,87 @@ def publish_combined_index(baseuri, nsfolder, outfolder, logconf=None):
     nsfolder = Path(nsfolder).resolve()
     log.debug(f"publishing combined index from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
     
+    processing_list = list()
+    
+    root_folder_name = outfolder.parts[-1]
+    log.debug(f"root folder name is {root_folder_name}")
     #run over nsfolder and process ontology files
-    for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+    for folder, dirs, nsfiles in os.walk(outfolder, topdown=False, followlinks=True):
         for nsname in nsfiles:
-            if nsname.endswith(".ttl"):
-                # take the first part of ttl file as the basname
-                name_file = nsname.split(".")[0]
-                #check if there is a corresponding csv file
-                for nsotherfiles in nsfiles:
-                    log.debug(nsotherfiles)
-                    if (nsotherfiles == name_file + ".csv"):
-                        #if so, process it
-                        log.debug(f"processing {nsname} in {folder} as a combined index")
-                log.debug(f"ttl file at {folder} - {nsname} when walking {nsfolder}")
+            parent_folder = Path(folder).parts[-1]
+            nssub = Path(folder).relative_to(outfolder)
+            if parent_folder == root_folder_name:
+                continue
+            if nsname.endswith(".html"):
+                #check if the name contains _vocab
+                if nsname.endswith("_vocab.html"):
+                    prsnt = False
+                    for item in processing_list:
+                        if item["folder"] == parent_folder:
+                            item["vocabularies"] = nsname
+                            break
+                    if not prsnt:
+                        processing_list.append({"folder":parent_folder, "ontologies":"", "vocabularies":nsname, "nssub":nssub})
+                    continue
+                #go voer processing list and check if the parent folder is already present in the folder key of the dict
+                prsnt = False
+                for item in processing_list:
+                    if item["folder"] == parent_folder:
+                        item["ontologies"] = nsname
+                        prsnt = True
+                        break
+                if not prsnt:
+                    processing_list.append({"folder":parent_folder, "ontologies":nsname, "vocabularies":"", "nssub":nssub})
+                
+                
+                #take the last part of the folder 
+                log.debug(f"parent_folder={parent_folder}")
+                log.debug(f"processing {nsname} in {folder} in dir {dirs}")
+    #clear out processing list by comparing the folder key and checking if each dict with the same folder name has a value is bot vocabulary and ontology
+    for item in processing_list:
+        if item["ontologies"] == "" and item["vocabularies"] != "":
+            processing_list.remove(item)
+    
+    #run over the processing list and create the combined index
+    #init result sets
+    combined = dict()
+    combined_in_err = set()
+    for item in processing_list:
+        nscombined = combined_index_pub(baseuri, nsfolder, item["nssub"], item["ontologies"], outfolder, item["ontologies"], item["vocabularies"])
+        if nscombined["error"]:
+            log.error(f"failed to process combined index for {item['folder']}")
+            log.error(f"error message: {nscombined['error_message']}")
+            combined_in_err.add(item["folder"])
+        combined[item["folder"]] = nscombined
+    return combined
+        
+
+def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vocabulary):
+    log.debug(f"combined index to process: {nssub}/{nsname} in {nsfolder}")
+    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}/{nssub}, ontology={ontology}, vocabulary={vocabulary}")
+    toreturn = dict()
+    try:
+        # generate a proper index.html file using an embedded jinja-template
+        prms = dict(ontology=ontology, baseuri=baseuri, vocabulary=vocabulary, nsname=nsname, nssub=nssub)
+        templates_env = Environment(loader=BaseLoader)
+        template = templates_env.from_string(EMBEDDED_INDEX_IFRAME_TEMPLATE)
+        outcome = template.render(prms)
+        log.debug(f"> INDEX --> context for template == {prms}")
+        outindexpath = outfolder / nssub / "index.html"
+        with open(str(outindexpath), "w") as outfile:
+            outfile.write(outcome)
+        log.debug(f"> INDEX --> overview of processed combined index written to '{outindexpath}'")
+        toreturn["error"] = False
+    except Exception as e:
+        toreturn["error"] = True
+        log.debug(f"> INDEX --> error while processing combined index for {nssub}/{nsname}")
+        log.error(e)
+        toretrun["error_message"] = str(e)
+    finally:
+        return toreturn
+    
+    
+                
                 
 
     
@@ -836,7 +935,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
     toreturn = dict()
     try:
-        output_name_html = "index.html"
+        output_name_html = nsname.replace(".csv", "_vocab.html")
         output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
         template_path = "templates"
         template_name_html = "template_html.html"
@@ -845,8 +944,8 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.debug(f"input_file={input_file}")
         
         #check if the output folder exists, if not create it
-        folder_name = "vocab"
-        output_folder = outfolder / nssub / nsname.replace(".csv", "") /folder_name
+        folder_name = nsname.replace(".csv", "")
+        output_folder = outfolder / nssub /folder_name
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
             output_folder.mkdir(parents=True)
