@@ -15,7 +15,7 @@ FROM cicirello/pyaction:4
 COPY entrypoint.py /entrypoint.py
 COPY requirements.txt /requirements.txt
 #copy the templates folder
-COPY templates /templates
+COPY templates/ ./templates/
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["/entrypoint.py"]
