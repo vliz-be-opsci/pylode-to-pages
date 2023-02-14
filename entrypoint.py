@@ -663,7 +663,7 @@ code{
         {%for key,onto in ontos.items()%}
             <div class="concept entity" id="{{onto.title}}">
                 <h3 class="title">
-                    <a href="{{onto.relref}}">{{onto.name}}/</a>
+                    <a href="{{onto.relref}}/index">{{onto.name}}/</a>
                     <sup class="sup-op" title="ontology">O</sup>
                 </h3>
                 <table>
