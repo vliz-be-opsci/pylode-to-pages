@@ -1,5 +1,4 @@
 #!/usr/bin/env -S python3 -B
-
 # NOTE: If you are using an alpine docker image
 # such as pyaction-lite, the -S option above won't
 # work. The above line works fine on other linux distributions
@@ -328,7 +327,7 @@ code{
         {%if vocabulary%}
             <div class="concept entity" id="{{vocabulary}}">
                 <h3 class="title">
-                    <a href="{{vocabulary}}">{{nsname}} ontology/</a>
+                    <a href="{{vocabulary}}">{{nsname}} vocabulary/</a>
                     <sup class="sup-op" title="vocabulary">Vocabulary</sup>
                 </h3>
                 <table>
@@ -930,14 +929,14 @@ def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vo
                 
 
     
-def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
+def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
     toreturn = dict()
     try:
         output_name_html = nsname.replace(".csv", "_vocab.html")
         output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
-        template_path = "templates"
+        template_path = template_path
         template_name_html = "template_html.html"
         template_name_ttl = "template_ttl.ttl"
         input_file = nsfolder / nssub / nsname
@@ -984,7 +983,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder):
         return toreturn
     
     
-def publish_vocabs(baseuri, nsfolder, outfolder, logconf=None):
+def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
     enable_logging(logconf)
     
     #default target folder to input folder
@@ -1005,7 +1004,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, logconf=None):
                 
                 nssub = Path(folder).relative_to(nsfolder)
                 nskey  =f"{str(nssub)}/{nsname}"
-                nspub = vocabpub(baseuri, nsfolder, nssub, nsname, outfolder)
+                nspub = vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path)
                 if nspub['error']:
                     log.debug(f"vocab {nskey} failed to publish")
                     log.exception(nspub['error_message'])
@@ -1070,17 +1069,21 @@ class OntoPubException(Exception):
 
 def main():
     load_dotenv()
-
     # read the action inputs
     baseuri = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('BASE_URI')
     nsfolder = sys.argv[2] if len(sys.argv) > 2 else "."
     outfolder = sys.argv[3] if len(sys.argv) > 3 else None
     logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get('LOGCONF')
+    #load in logconf
+    enable_logging(logconf)
+    myfolder = Path(__file__).parent.absolute()
+    template_path = myfolder / "templates"
+    log.debug(f"template_path={template_path} -- exists? {template_path.exists()}")
 
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
     ontos = publish_ontologies(baseuri, nsfolder, outfolder, logconf)
-    vocabs= publish_vocabs(baseuri, nsfolder, outfolder, logconf)
+    vocabs= publish_vocabs(baseuri, nsfolder, outfolder, template_path ,logconf)
 
     # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
     publish_combined_index(baseuri, nsfolder, outfolder, logconf)
