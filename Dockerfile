@@ -16,8 +16,8 @@ COPY entrypoint.py /entrypoint.py
 COPY requirements.txt /requirements.txt
 #copy the templates folder
 COPY templates/ ./templates/
-#check if templates was copied
-RUN ls -la --recursive --human-readable
+#check if templates was copied by listing the recursive files in the directory
+RUN ls -la --recursive --human-readable templates/
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["/entrypoint.py"]
