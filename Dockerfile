@@ -16,6 +16,8 @@ COPY entrypoint.py /entrypoint.py
 COPY requirements.txt /requirements.txt
 #copy the templates folder
 COPY templates/ ./templates/
+#check if templates was copied
+RUN ls -la
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["/entrypoint.py"]
