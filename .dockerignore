@@ -2,3 +2,4 @@
 !Dockerfile
 !entrypoint.py
 !requirements.txt
+!templates/
