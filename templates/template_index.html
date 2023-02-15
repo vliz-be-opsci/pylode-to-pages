@@ -283,16 +283,36 @@ code{
         {%for key,onto in ontos.items()%}
             <div class="concept entity" id="{{onto.title}}">
                 <h3 class="title">
-                    <a href="{{onto.relref}}/index">{{onto.name}}/</a>
+                    <a href="{{onto.relref}}/{{onto.name}}">{{onto.name}}/</a>
                     <sup class="sup-op" title="ontology">O</sup>
+                    {%for secondkey, secondonto in ontos.items()%}
+                        {%for keyvocab, vocab in vocabs.items()%}
+                            {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                                <a href="{{onto.relref}}/{{onto.name}}_vocab">{{onto.name}}_vocab/</a>
+                                <sup class="sup-op" title="vocabulary">V</sup>
+                            {%endif%}
+                        {%endfor%}
+                    {%endfor%}
                 </h3>
                 <table>
                     <tr>
-                        <th>IRI</th>
+                        <th>IRI ontology</th>
                         <td>
-                            <code>{{baseuri}}/{{onto.relref}}</code>
+                            <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}</code>
                         </td>
                     </tr>
+                    {%for secondkey, secondonto in ontos.items()%}
+                        {%for keyvocab, vocab in vocabs.items()%}
+                            {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                                <tr>
+                                    <th>IRI vocabulary</th>
+                                    <td>
+                                        <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}_vocab</code>
+                                    </td>
+                                </tr>
+                            {%endif%}
+                        {%endfor%}
+                    {%endfor%}
                     <tr>
                         <th>
                             <span class="hover_property">Title</span>

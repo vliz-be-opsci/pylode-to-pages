@@ -291,6 +291,23 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     finally:
         return toreturn
     
+def publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf=None):
+    enable_logging(logconf)
+    log.debug(msg=f"publishing index.html to {outfolder}")
+    log.debug(msg=f"baseuri={baseuri}")
+    log.debug(msg=f"ontos={ontos} -- vocabs={vocabs}")
+    
+    #make an index.html using a template from the templates folder
+    prms = dict(ontos=ontos, baseuri=baseuri, vocabs=vocabs)
+    templates_env = Environment(loader=FileSystemLoader(str(template_path)))
+    template = templates_env.get_template("template_index.html")
+    outcome = template.render(prms)
+    log.debug(f"> INDEX --> context for template == {prms}")
+    outindexpath = outfolder + "/index.html"
+    with open(str(outindexpath), "w") as outfile:
+        outfile.write(outcome)
+    
+    
 def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
     enable_logging(logconf)
     
@@ -317,8 +334,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
                     log.debug(f"vocab {nskey} failed to publish")
                     log.exception(nspub['error_message'])
                     vocabs_in_err.add(nskey)
-                vocabs[nskey] = nspub
-                
+                vocabs[nskey] = nspub 
     return vocabs
 
 def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None):
@@ -350,20 +366,8 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None
     # copy any other stuff outside the actual pylode / ontology stuff 
     publish_misc(baseuri, nsfolder, outfolder)
 
-    # generate a proper index.html file using an embedded jinja-template
-    prms = dict(ontos=ontos, baseuri=baseuri)
-    templates_env = Environment(loader=FileSystemLoader(str(template_path)))
-    template = templates_env.get_template("template_index.html")
-    outcome = template.render(prms)
-    log.debug(f"> INDEX --> context for template == {prms}")
-    outindexpath = outfolder / "index.html"
-    with open(str(outindexpath), "w") as outfile:
-        outfile.write(outcome)
-    log.debug(f"> INDEX --> overview of processed ontologies written to '{outindexpath}'")
-
     if len(ontos_in_err) > 0:
         raise OntoPubException(ontos, ontos_in_err)
-    # else
     return ontos
 
 
@@ -392,9 +396,14 @@ def main():
     # TODO consider some way to deal with the possible OntoPubException
     ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf)
     vocabs= publish_vocabs(baseuri, nsfolder, outfolder, template_path ,logconf)
+    log.debug(msg=f"ontos={ontos.keys()} -- vocabs={vocabs.keys()}")
+    
+    #function here that will make the index.html file with info concerning the ontologies and the vocabularies
+    publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf)
 
     # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
-    publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
+    #the following function is deprecated
+    #publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
     
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")
