@@ -286,12 +286,14 @@ code{
                     <a href="{{onto.relref}}/{{onto.name}}">{{onto.name}}/</a>
                     <sup class="sup-op" title="ontology">O</sup>
                     {%for secondkey, secondonto in ontos.items()%}
-                        {%for keyvocab, vocab in vocabs.items()%}
-                            {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
-                                <a href="{{onto.relref}}/{{onto.name}}_vocab">{{onto.name}}_vocab/</a>
-                                <sup class="sup-op" title="vocabulary">V</sup>
-                            {%endif%}
-                        {%endfor%}
+                    {%if key == secondkey%}
+                    {%for keyvocab, vocab in vocabs.items()%}
+                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                    <a href="{{onto.relref}}/{{onto.name}}_vocab">{{onto.name}}_vocab/</a>
+                    <sup class="sup-op" title="vocabulary">V</sup>
+                    {%endif%}
+                    {%endfor%}
+                    {%endif%}
                     {%endfor%}
                 </h3>
                 <table>
@@ -302,16 +304,18 @@ code{
                         </td>
                     </tr>
                     {%for secondkey, secondonto in ontos.items()%}
-                        {%for keyvocab, vocab in vocabs.items()%}
-                            {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
-                                <tr>
-                                    <th>IRI vocabulary</th>
-                                    <td>
-                                        <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}_vocab</code>
-                                    </td>
-                                </tr>
-                            {%endif%}
-                        {%endfor%}
+                    {%if key == secondkey%}
+                    {%for keyvocab, vocab in vocabs.items()%}
+                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                    <tr>
+                        <th>IRI vocabulary</th>
+                        <td>
+                            <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}_vocab</code>
+                        </td>
+                    </tr>
+                    {%endif%}
+                    {%endfor%}
+                    {%endif%}
                     {%endfor%}
                     <tr>
                         <th>
