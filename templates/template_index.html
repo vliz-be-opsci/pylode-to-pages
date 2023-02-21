@@ -215,6 +215,10 @@
             text-decoration: none;
         }
 
+.red {
+    color: red;
+}        
+
 #toc {
     position: fixed;
     top: 0;
@@ -288,7 +292,7 @@ code{
                     {%for secondkey, secondonto in ontos.items()%}
                     {%if key == secondkey%}
                     {%for keyvocab, vocab in vocabs.items()%}
-                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
                     <a href="{{onto.relref}}/{{onto.name}}_vocab">{{onto.name}}_vocab/</a>
                     <sup class="sup-op" title="vocabulary">V</sup>
                     {%endif%}
@@ -298,7 +302,7 @@ code{
                 </h3>
                 <table>
                     <tr>
-                        <th>IRI ontology</th>
+                        <th>{%if onto.draft%}<div class="red">DRAFT</div>{%endif%}IRI ontology</th>
                         <td>
                             <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}</code>
                         </td>
@@ -306,9 +310,9 @@ code{
                     {%for secondkey, secondonto in ontos.items()%}
                     {%if key == secondkey%}
                     {%for keyvocab, vocab in vocabs.items()%}
-                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "")%}
+                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
                     <tr>
-                        <th>IRI vocabulary</th>
+                        <th>{%if vocab.draft%}<div class="red">DRAFT</div>{%endif%}IRI vocabulary</th>
                         <td>
                             <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}_vocab</code>
                         </td>

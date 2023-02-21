@@ -81,11 +81,14 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     nsfolder = Path(nsfolder)
     outfolder = Path(outfolder)
     nspath = (nsfolder / nssub / nsname).resolve()
-    outpath = (outfolder / nssub / nsname).resolve()
-    outbackpath = (outfolder / nssub / f"{nsname}.bak").resolve()
-
+    outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
+    outbackpath = (outfolder / nssub / f"{nsname}.bak").resolve() #what does .bak mean? => backup file extension for the original file provided by the user (before it is processed by pylode2pages) 
     # extract name for {{ self }} from filename
     name = str(Path(nsname).stem)
+    draft = False
+    if "_draft" in name:
+        draft = True
+        name = name.replace("_draft", "")
     # I changed the index.html to name.html since I will be making the index.html in the publish combined index function
     name_html = name + ".html"
     # produce html path and index-path
@@ -115,7 +118,8 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         outfile.write(outcome)
     log.debug(f"> {name} --> processed ontlogy written to '{outpath}'")
 
-    nspub = dict(error=True)  # this assumes things will go bad :)
+    nspub = dict(error=True) # this assumes things will go bad :)
+    #check if _draft is in the name
     try:                      # apply pylode
         od = OntDoc(outpath)
         log.debug(f"> {name} --> ontology loaded to pylode from '{outpath}'")
@@ -128,6 +132,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.debug(f"> {name} --> copy added to '{outindexpath}'")
         # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
+        nspub["draft"] = draft
         log.debug(f"> {name} --> ready with result == {nspub}")
         nspub['name'] = name
         nspub['relref'] = str(outindexpath.parent.relative_to(outfolder)).replace("\\", "/")
@@ -173,7 +178,7 @@ def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=
                 continue
             if nsname.endswith(".html"):
                 #check if the name contains _vocab
-                if nsname.endswith("_vocab.html"):
+                if nsname.endswith("_vocab.html") or nsname.endswith("_vocab_draft.html"):
                     prsnt = False
                     for item in processing_list:
                         if item["folder"] == parent_folder:
@@ -243,48 +248,88 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
     toreturn = dict()
     try:
-        output_name_html = nsname.replace(".csv", "_vocab.html")
-        output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
+        if nsname.endswith("_draft.csv"):
+            draft = True
+        else:
+            draft = False
+            
+        if draft:
+            output_name_html = nsname.replace("_draft.csv", "_vocab.html")
+            output_name_ttl = nsname.replace("_draft.csv", "_vocab.ttl")
+        else:
+            output_name_html = nsname.replace(".csv", "_vocab.html")
+            output_name_ttl = nsname.replace(".csv", "_vocab.ttl")
         template_path = template_path
         template_name_html = "template_html.html"
         template_name_ttl = "template_ttl.ttl"
         input_file = nsfolder / nssub / nsname
         log.debug(f"input_file={input_file}")
         
+        
+        
         #check if the output folder exists, if not create it
-        folder_name = nsname.replace(".csv", "")
+        if draft:
+            folder_name = nsname.replace("_draft.csv", "")
+        else:
+            folder_name = nsname.replace(".csv", "")
         output_folder = outfolder / nssub /folder_name
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
             output_folder.mkdir(parents=True)
-        
+        outindexpath = (output_folder / output_name_html)
+        relref = str(outindexpath.relative_to(outfolder)).replace("\\", "/")
         #html generation
         args = {
             "input":input_file.__str__(),
             "output":(output_folder / output_name_html).__str__(),
             "template_path":template_path,
-            "template_name":template_name_html
+            "template_name":template_name_html,
+            "vars_dict":{
+                "baseuri":baseuri,
+                "title":str(nsname + " vocabulary").replace(".csv", ""),
+                "relref":str(relref).replace(".html", ""),
+                "draft":draft,
+                }
         }
         log.debug(f"arguments_pysubytd={args}")
         service = JinjaBasedGenerator(args["template_path"])
         source = {"_": SourceFactory.make_source(args["input"])}
         sink = SinkFactory.make_sink(args["output"], force_output=True)
         settings = Settings()
-        service.process(args["template_name"], source, settings, sink)
+        service.process(
+            args["template_name"],
+            source,
+            settings,
+            sink,
+            args
+            )
         #ttl generation
         second_args = {
             "input":input_file.__str__(),
             "output":(output_folder / output_name_ttl).__str__(),
             "template_path":template_path,
-            "template_name":template_name_ttl
+            "template_name":template_name_ttl,
+            "baseuri":baseuri,
+            "vars_dict":{
+                "baseuri":baseuri,
+                "title":str(nsname + " vocabulary").replace(".csv", ""),
+                "relref":str(relref).replace(".html", "")
+            }
         }
         log.debug(f"arguments_pysubytd={second_args}")
-        service = JinjaBasedGenerator(second_args["template_path"])
+        service= JinjaBasedGenerator(second_args["template_path"])
         source = {"_": SourceFactory.make_source(second_args["input"])}
         sink = SinkFactory.make_sink(second_args["output"], force_output=True)
-        service.process(second_args["template_name"], source, settings, sink)
+        service.process(
+            second_args["template_name"],
+            source,
+            settings,
+            sink,
+            args
+            )
         
         toreturn["error"] = False
+        toreturn["draft"] = draft
     except Exception as e:
         toreturn['error'] = True
         toreturn['error_message'] = str(e)
