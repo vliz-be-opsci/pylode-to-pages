@@ -422,6 +422,38 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None
         raise OntoPubException(ontos, ontos_in_err)
     return ontos
 
+def combine_ttls(outfolder):
+    """Will combine all the ttl files in the outfolder into a single ttl file
+
+    Args:
+        outfolder (str): the folder to combine the ttl files from
+    """
+    ttl_files = []
+    for folder, dirs, nsfiles in os.walk(outfolder, topdown=False, followlinks=True):
+        for file in nsfiles:
+            if file.endswith(".ttl"):
+                #if file does not contain _vocabs then add it to the list
+                if not file.endswith("_vocab.ttl"):
+                    log.debug(msg=f"found an ontology ttl file {file} in {folder}")
+                    ttl_files.append({"folder": folder, "file": file})
+    #loop over the ttl_files and check if there is another file with the same name but with _vocabs appedned to it and from the same folder
+    for ttl_file in ttl_files:
+        vocabs_file = ttl_file["file"].replace(".ttl", "_vocab.ttl")
+        vocabs_path = Path(ttl_file["folder"]) / vocabs_file
+        if vocabs_path.exists():
+            log.debug(msg=f"found vocabs file {vocabs_file} in {ttl_file['folder']}")
+            ttl_file["vocabs_file"] = vocabs_file
+            ttl_file["vocabs_path"] = vocabs_path
+            #read in contents of vocabs file and append them to the ttl file
+            with open(vocabs_path, "r") as vocabs_file:
+                vocabs_content = vocabs_file.read()
+            with open(Path(ttl_file["folder"]) / ttl_file["file"], "a") as ttl_file:
+                ttl_file.write(vocabs_content)
+            #delete the vocabs file
+            os.remove(path=vocabs_path)
+                
+                
+
 
 class OntoPubException(Exception):
     def __init__(self, ontos: dict, error_ontos: set):
@@ -452,7 +484,7 @@ def main():
     
     #function here that will make the index.html file with info concerning the ontologies and the vocabularies
     publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf)
-
+    combine_ttls(outfolder)
     # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
     #the following function is deprecated
     #publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
