@@ -172,6 +172,14 @@
         .sup-op {
             color:navy;
         }
+        .sup-op > a {
+            color:navy;
+            text-decoration: none;
+        }
+
+        .sup-op > a:hover {
+            text-decoration: underline;
+        }
 
         .sup-fp {
             color:lightskyblue;
@@ -235,6 +243,12 @@
     margin-top: 5px;
 }
 
+.right-align {
+    margin-left: 98%;
+    margin-right: 10px;
+    vertical-align: top;
+}
+
 #toc ul {
     list-style: none;
     padding-left: 0;
@@ -286,41 +300,28 @@ code{
         <h2>Ontologies and vocabularies</h2>
         {%for key,onto in ontos.items()%}
             <div class="concept entity" id="{{onto.title}}">
+                
                 <h3 class="title">
-                    <a href="{{onto.relref}}/{{onto.name}}">{{onto.name}}/</a>
-                    <sup class="sup-op" title="ontology">O</sup>
+                    {{onto.name}}/
+                    <sup class="sup-op" title="ontology"><a href="{{onto.relref}}">{%if onto.draft%}<span class="red">DRAFT</span>{%endif%} Ontology</a></sup>
                     {%for secondkey, secondonto in ontos.items()%}
                     {%if key == secondkey%}
                     {%for keyvocab, vocab in vocabs.items()%}
                     {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
-                    <a href="{{onto.relref}}/{{onto.name}}_vocab">{{onto.name}}_vocab/</a>
-                    <sup class="sup-op" title="vocabulary">V</sup>
+                    <sup class="sup-op" title="vocabulary">--- <a href="{{onto.relref}}_vocab">{%if vocab.draft%}<span class="red">DRAFT</span>{%endif%} Vocabulary</a></sup>
                     {%endif%}
                     {%endfor%}
                     {%endif%}
                     {%endfor%}
+                    <sup class="right-align sup-op" title="turtle file"><a href="{{onto.relref}}.ttl">.ttl</a></sup>
                 </h3>
                 <table>
                     <tr>
                         <th>{%if onto.draft%}<div class="red">DRAFT</div>{%endif%}IRI ontology</th>
                         <td>
-                            <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}</code>
+                            <code>{{baseuri}}/{{onto.relref}}</code>
                         </td>
                     </tr>
-                    {%for secondkey, secondonto in ontos.items()%}
-                    {%if key == secondkey%}
-                    {%for keyvocab, vocab in vocabs.items()%}
-                    {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
-                    <tr>
-                        <th>{%if vocab.draft%}<div class="red">DRAFT</div>{%endif%}IRI vocabulary</th>
-                        <td>
-                            <code>{{baseuri}}/{{onto.relref}}/{{onto.name}}_vocab</code>
-                        </td>
-                    </tr>
-                    {%endif%}
-                    {%endfor%}
-                    {%endif%}
-                    {%endfor%}
                     <tr>
                         <th>
                             <span class="hover_property">Title</span>

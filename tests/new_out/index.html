@@ -172,6 +172,14 @@
         .sup-op {
             color:navy;
         }
+        .sup-op > a {
+            color:navy;
+            text-decoration: none;
+        }
+
+        .sup-op > a:hover {
+            text-decoration: underline;
+        }
 
         .sup-fp {
             color:lightskyblue;
@@ -235,6 +243,12 @@
     margin-top: 5px;
 }
 
+.right-align {
+    margin-left: 98%;
+    margin-right: 10px;
+    vertical-align: top;
+}
+
 #toc ul {
     list-style: none;
     padding-left: 0;
@@ -286,15 +300,15 @@ code{
         <h2>Ontologies and vocabularies</h2>
         
             <div class="concept entity" id="Test Onto #01">
+                
                 <h3 class="title">
-                    <a href="onto-one/onto-one">onto-one/</a>
-                    <sup class="sup-op" title="ontology">O</sup>
+                    onto-one/
+                    <sup class="sup-op" title="ontology"><a href="onto-one"> Ontology</a></sup>
                     
                     
                     
                     
-                    <a href="onto-one/onto-one_vocab">onto-one_vocab/</a>
-                    <sup class="sup-op" title="vocabulary">V</sup>
+                    <sup class="sup-op" title="vocabulary">--- <a href="onto-one_vocab"><span class="red">DRAFT</span> Vocabulary</a></sup>
                     
                     
                     
@@ -303,32 +317,15 @@ code{
                     
                     
                     
+                    <sup class="right-align sup-op" title="turtle file"><a href="onto-one.ttl">.ttl</a></sup>
                 </h3>
                 <table>
                     <tr>
                         <th>IRI ontology</th>
                         <td>
-                            <code>https://example.org/pylode2pages-test/onto-one/onto-one</code>
+                            <code>https://example.org/pylode2pages-test/onto-one</code>
                         </td>
                     </tr>
-                    
-                    
-                    
-                    
-                    <tr>
-                        <th><div class="red">DRAFT</div>IRI vocabulary</th>
-                        <td>
-                            <code>https://example.org/pylode2pages-test/onto-one/onto-one_vocab</code>
-                        </td>
-                    </tr>
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     <tr>
                         <th>
                             <span class="hover_property">Title</span>
@@ -349,9 +346,10 @@ code{
             </div>
         
             <div class="concept entity" id="Test Onto #01">
+                
                 <h3 class="title">
-                    <a href="onto-two/onto-two">onto-two/</a>
-                    <sup class="sup-op" title="ontology">O</sup>
+                    onto-two/
+                    <sup class="sup-op" title="ontology"><a href="onto-two"> Ontology</a></sup>
                     
                     
                     
@@ -360,38 +358,20 @@ code{
                     
                     
                     
-                    <a href="onto-two/onto-two_vocab">onto-two_vocab/</a>
-                    <sup class="sup-op" title="vocabulary">V</sup>
+                    <sup class="sup-op" title="vocabulary">--- <a href="onto-two_vocab"> Vocabulary</a></sup>
                     
                     
                     
                     
+                    <sup class="right-align sup-op" title="turtle file"><a href="onto-two.ttl">.ttl</a></sup>
                 </h3>
                 <table>
                     <tr>
                         <th>IRI ontology</th>
                         <td>
-                            <code>https://example.org/pylode2pages-test/onto-two/onto-two</code>
+                            <code>https://example.org/pylode2pages-test/onto-two</code>
                         </td>
                     </tr>
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <tr>
-                        <th>IRI vocabulary</th>
-                        <td>
-                            <code>https://example.org/pylode2pages-test/onto-two/onto-two_vocab</code>
-                        </td>
-                    </tr>
-                    
-                    
-                    
-                    
                     <tr>
                         <th>
                             <span class="hover_property">Title</span>

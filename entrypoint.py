@@ -246,6 +246,13 @@ def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vo
 def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
+    nspath = (nsfolder / nssub / nsname).resolve()
+    outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
+    name = str(Path(nsname).stem)
+    name_html = name + ".html"
+    name = name if str(nssub) == '.' else str(nssub) + "/" + name
+    outindexpath = (outfolder / nssub / name).resolve() / name_html
+    
     toreturn = dict()
     try:
         if nsname.endswith("_draft.csv"):
@@ -265,8 +272,6 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
         input_file = nsfolder / nssub / nsname
         log.debug(f"input_file={input_file}")
         
-        
-        
         #check if the output folder exists, if not create it
         if draft:
             folder_name = nsname.replace("_draft.csv", "")
@@ -276,7 +281,8 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
             output_folder.mkdir(parents=True)
-        outindexpath = (output_folder / output_name_html)
+        outindexpath = (outfolder / output_name_html)
+        outttlpath = (outfolder / output_name_ttl)
         relref = str(outindexpath.relative_to(outfolder)).replace("\\", "/")
         #html generation
         args = {
@@ -306,7 +312,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
         #ttl generation
         second_args = {
             "input":input_file.__str__(),
-            "output":(output_folder / output_name_ttl).__str__(),
+            "output":(outttlpath).__str__(),
             "template_path":template_path,
             "template_name":template_name_ttl,
             "baseuri":baseuri,
@@ -327,7 +333,8 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
             sink,
             args
             )
-        
+        shutil.copy((output_folder / output_name_html), outindexpath)
+        #shutil.copy((output_folder / output_name_ttl), outttlpath)
         toreturn["error"] = False
         toreturn["draft"] = draft
     except Exception as e:
