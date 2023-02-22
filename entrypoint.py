@@ -315,11 +315,10 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
             "output":(outttlpath).__str__(),
             "template_path":template_path,
             "template_name":template_name_ttl,
-            "baseuri":baseuri,
             "vars_dict":{
                 "baseuri":baseuri,
                 "title":str(nsname + " vocabulary").replace(".csv", ""),
-                "relref":str(relref).replace(".html", "")
+                "relref":str(relref).replace("_vocab.html", "")
             }
         }
         log.debug(f"arguments_pysubytd={second_args}")
@@ -331,7 +330,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
             source,
             settings,
             sink,
-            args
+            second_args
             )
         shutil.copy((output_folder / output_name_html), outindexpath)
         #shutil.copy((output_folder / output_name_ttl), outttlpath)
