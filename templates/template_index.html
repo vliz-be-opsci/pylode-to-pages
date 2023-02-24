@@ -244,9 +244,8 @@
 }
 
 .right-align {
-    margin-left: 98%;
     margin-right: 10px;
-    vertical-align: top;
+    float: right;
 }
 
 #toc ul {
@@ -276,6 +275,29 @@
     list-style-type: none;
 }
 
+.myButton {
+	box-shadow: 0px 10px 14px -7px #276873;
+	background:linear-gradient(to bottom, #599bb3 5%, navy 100%);
+	background-color:navy;
+	border-radius:8px;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:12px;
+	font-weight:bold;
+	padding:4px 10px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #3d768a;
+}
+.myButton:hover {
+	background:linear-gradient(to bottom, #408c99 5%, #599bb3 100%);
+	background-color:#408c99;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
 code{
     word-wrap: break-word;
   }
@@ -303,17 +325,17 @@ code{
                 
                 <h3 class="title">
                     {{onto.name}}/
-                    <sup class="sup-op" title="ontology"><a href="{{onto.relref}}">{%if onto.draft%}<span class="red">DRAFT</span>{%endif%} Ontology</a></sup>
+                    <a href="{{onto.relref}}" class="myButton">{%if onto.draft%}<span class="red">DRAFT</span>{%endif%} Ontology</a>
                     {%for secondkey, secondonto in ontos.items()%}
                     {%if key == secondkey%}
                     {%for keyvocab, vocab in vocabs.items()%}
                     {%if secondkey.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
-                    <sup class="sup-op" title="vocabulary">--- <a href="{{onto.relref}}_vocab">{%if vocab.draft%}<span class="red">DRAFT</span>{%endif%} Vocabulary</a></sup>
+                    <a href="{{onto.relref}}_vocab" class="myButton" >{%if vocab.draft%}<span class="red">DRAFT</span>{%endif%} Vocabulary</a>
                     {%endif%}
                     {%endfor%}
                     {%endif%}
                     {%endfor%}
-                    <sup class="right-align sup-op" title="turtle file"><a href="{{onto.relref}}.ttl">.ttl</a></sup>
+                    <a href="{{onto.relref}}.ttl" class="myButton right-align">.ttl</a>
                 </h3>
                 <table>
                     <tr>
