@@ -4,4 +4,4 @@ jinja2
 python-dotenv
 flake8
 pytest
-git+https://github.com/vliz-be-opsci/pysubyt#egg=pysubyt
+git+https://github.com/vliz-be-opsci/pysubyt.git@4518e4f#egg=pysubyt
