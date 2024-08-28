@@ -14,8 +14,8 @@ import yaml
 from dotenv import load_dotenv
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, BaseLoader
-from pysubyt import JinjaBasedGenerator, SourceFactory, SinkFactory, Settings
-from pylode import OntDoc, PylodeError, __version__ as plv
+from pysubyt import JinjaBasedGenerator, SourceFactory, SinkFactory, GeneratorSettings
+from pylode import OntPub, PylodeError, __version__ as plv
 from pylode import (
     DCTERMS,
     OWL,
@@ -55,7 +55,7 @@ def enable_logging(logconf):
         logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
         log.warning(f"logconf file '{logconf}' does not exist. Embedded logging config applied as fallback.")
 
-def extract_pub_dict(od: OntDoc):
+def extract_pub_dict(od: OntPub):
     def ont_prop(ont, predicate):
         value = None
         for s in chain(
@@ -121,7 +121,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     nspub = dict(error=True) # this assumes things will go bad :)
     #check if _draft is in the name
     try:                      # apply pylode
-        od = OntDoc(outpath)
+        od = OntPub(outpath)
         log.debug(f"> {name} --> ontology loaded to pylode from '{outpath}'")
         # ask pylode to make the html
         od.make_html(destination=outhtmlpath, include_css=False)
@@ -301,7 +301,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
         service = JinjaBasedGenerator(args["template_path"])
         source = {"_": SourceFactory.make_source(args["input"])}
         sink = SinkFactory.make_sink(args["output"], force_output=True)
-        settings = Settings()
+        settings = GeneratorSettings()
         service.process(
             args["template_name"],
             source,

@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-PYTHON = python3
+PYTHON = python
 TEST_PATH = ./tests/
 FLAKE8_EXCLUDE = venv,.venv,.eggs,.tox,.git,__pycache__,*.pyc
 
