@@ -19,12 +19,7 @@
     dc:issued        "2022-06-07"^^xsd:date ;
     dc:modified      "2022-07-19"^^xsd:date ;
     dc:license       <https://creativecommons.org/licenses/by/4.0/> ;
-    dc:creator
-    [
-        schema:name         "VLIZ Open science team" ;
-        schema:email        <mailto:opsci@vliz.org> ;
-        schema:affiliation  <https://www.vliz.be/> ;
-    ] ;
+    dc:creator        "VLIZ Open science team" ;
     vann:preferredNamespacePrefix "tst1" ;
     vann:preferredNamespaceUri    "https://example.org/pylode2pages-test/onto-one#" .
 
