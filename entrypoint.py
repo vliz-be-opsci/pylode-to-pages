@@ -25,7 +25,7 @@ from pylode import (
 )
 from itertools import chain
 
-log = logging.getLogger('pylode-to-pages')
+log = logging.getLogger("pylode-to-pages")
 
 EMBEDDED_YAML_LOGCONF = """
 version: 1
@@ -47,13 +47,19 @@ root:
   handlers: [stderr]
 """
 
+
 def enable_logging(logconf):
     if logconf is not None and Path(logconf).is_file():
-        with open(logconf, 'r') as yml_logconf:
+        with open(logconf, "r") as yml_logconf:
             logging.config.dictConfig(yaml.load(yml_logconf, Loader=yaml.SafeLoader))
     else:
-        logging.config.dictConfig(yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader))
-        log.warning(f"logconf file '{logconf}' does not exist. Embedded logging config applied as fallback.")
+        logging.config.dictConfig(
+            yaml.load(EMBEDDED_YAML_LOGCONF, Loader=yaml.SafeLoader)
+        )
+        log.warning(
+            f"logconf file '{logconf}' does not exist. Embedded logging config applied as fallback."
+        )
+
 
 def extract_pub_dict(od: OntPub):
     def ont_prop(ont, predicate):
@@ -75,14 +81,17 @@ def extract_pub_dict(od: OntPub):
 
     return dict(title=od_title(), lastmod=od_lastmod())
 
+
 def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"ontology to process: {nssub}/{nsname} in {nsfolder}")
-    
+
     nsfolder = Path(nsfolder)
     outfolder = Path(outfolder)
     nspath = (nsfolder / nssub / nsname).resolve()
     outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
-    outbackpath = (outfolder / nssub / f"{nsname}.bak").resolve() #what does .bak mean? => backup file extension for the original file provided by the user (before it is processed by pylode2pages) 
+    outbackpath = (
+        outfolder / nssub / f"{nsname}.bak"
+    ).resolve()  # what does .bak mean? => backup file extension for the original file provided by the user (before it is processed by pylode2pages)
     # extract name for {{ self }} from filename
     name = str(Path(nsname).stem)
     draft = False
@@ -98,7 +107,7 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     log.debug(f"> {name} --> outindexpath == '{outindexpath}'")
 
     # and finally prefix it with the nssub if relevant to produce the jinja {{name}}
-    name = name if str(nssub) == '.' else str(nssub) + "/" + name
+    name = name if str(nssub) == "." else str(nssub) + "/" + name
     log.debug(f"> {name} --> ontopub work started")
 
     # ensure outfolder exists (indexpath is the deepest one)
@@ -111,16 +120,18 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
     # apply jinja2 (building context with baseuri and self) -- build jinja2 context - execute
     prms = dict(name=name, baseuri=baseuri)
     templates_env = Environment(loader=FileSystemLoader(nsfolder))
-    template = templates_env.get_template(str(nspath.relative_to(nsfolder)).replace("\\", "/"))
+    template = templates_env.get_template(
+        str(nspath.relative_to(nsfolder)).replace("\\", "/")
+    )
     outcome = template.render(prms)
     log.debug(f"> {name} --> context for templates == {prms}")
     with open(str(outpath), "w") as outfile:
         outfile.write(outcome)
     log.debug(f"> {name} --> processed ontlogy written to '{outpath}'")
 
-    nspub = dict(error=True) # this assumes things will go bad :)
-    #check if _draft is in the name
-    try:                      # apply pylode
+    nspub = dict(error=True)  # this assumes things will go bad :)
+    # check if _draft is in the name
+    try:  # apply pylode
         od = OntPub(outpath)
         log.debug(f"> {name} --> ontology loaded to pylode from '{outpath}'")
         # ask pylode to make the html
@@ -128,26 +139,35 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.debug(f"> {name} --> html produced to '{outhtmlpath}'")
         # also add an extra copy from name.html to name/index.html AND for the css as well
         shutil.copy(outhtmlpath, outindexpath)
-        shutil.copy(outhtmlpath.parent / "pylode.css", outindexpath.parent / "pylode.css")
+        shutil.copy(
+            outhtmlpath.parent / "pylode.css", outindexpath.parent / "pylode.css"
+        )
         log.debug(f"> {name} --> copy added to '{outindexpath}'")
         # get some minimal metadata from the ttl since pylode loaded that into memory anyway?
         nspub = extract_pub_dict(od)  # if we got here however, things should be ok
         nspub["draft"] = draft
         log.debug(f"> {name} --> ready with result == {nspub}")
-        nspub['name'] = name
-        nspub['relref'] = str(outindexpath.parent.relative_to(outfolder)).replace("\\", "/")
+        nspub["name"] = name
+        nspub["relref"] = str(outindexpath.parent.relative_to(outfolder)).replace(
+            "\\", "/"
+        )
     except PylodeError as ple:
-        log.error(f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'")
+        log.error(
+            f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'"
+        )
         log.exception(ple)
     except Exception as e:
-        log.error(f"> {name} --> unexpected failure in processing ontology at '{nspath}'")
+        log.error(
+            f"> {name} --> unexpected failure in processing ontology at '{nspath}'"
+        )
         log.exception(e)
     finally:
         # return the pub struct with core elements for the overview page
         log.debug(f"> {name} --> returning result == {nspub}")
         return nspub
 
-def publish_misc(baseuri, nsfolder, outfolder ):
+
+def publish_misc(baseuri, nsfolder, outfolder):
     otherfiles = ["CNAME"]
     nsfolder = Path(nsfolder)
     outfolder = Path(outfolder)
@@ -155,21 +175,24 @@ def publish_misc(baseuri, nsfolder, outfolder ):
         otherfile = nsfolder / other
         if otherfile.exists():
             shutil.copy(otherfile, outfolder / other)
-    #TODO consider generating CNAME file with content derived from baseuri
+    # TODO consider generating CNAME file with content derived from baseuri
+
 
 def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=None):
     enable_logging(logconf)
-    #default target folder to input folder
+    # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
     outfolder = Path(outfolder).resolve()
     nsfolder = Path(nsfolder).resolve()
-    log.debug(f"publishing combined index from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
-    
+    log.debug(
+        f"publishing combined index from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}"
+    )
+
     processing_list = list()
-    
+
     root_folder_name = outfolder.parts[-1]
     log.debug(f"root folder name is {root_folder_name}")
-    #run over nsfolder and process ontology files
+    # run over nsfolder and process ontology files
     for folder, dirs, nsfiles in os.walk(outfolder, topdown=False, followlinks=True):
         for nsname in nsfiles:
             parent_folder = Path(folder).parts[-1]
@@ -177,17 +200,26 @@ def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=
             if parent_folder == root_folder_name:
                 continue
             if nsname.endswith(".html"):
-                #check if the name contains _vocab
-                if nsname.endswith("_vocab.html") or nsname.endswith("_vocab_draft.html"):
+                # check if the name contains _vocab
+                if nsname.endswith("_vocab.html") or nsname.endswith(
+                    "_vocab_draft.html"
+                ):
                     prsnt = False
                     for item in processing_list:
                         if item["folder"] == parent_folder:
                             item["vocabularies"] = nsname
                             break
                     if not prsnt:
-                        processing_list.append({"folder":parent_folder, "ontologies":"", "vocabularies":nsname, "nssub":nssub})
+                        processing_list.append(
+                            {
+                                "folder": parent_folder,
+                                "ontologies": "",
+                                "vocabularies": nsname,
+                                "nssub": nssub,
+                            }
+                        )
                     continue
-                #go voer processing list and check if the parent folder is already present in the folder key of the dict
+                # go over processing list and check if the parent folder is already present in the folder key of the dict
                 prsnt = False
                 for item in processing_list:
                     if item["folder"] == parent_folder:
@@ -195,37 +227,63 @@ def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=
                         prsnt = True
                         break
                 if not prsnt:
-                    processing_list.append({"folder":parent_folder, "ontologies":nsname, "vocabularies":"", "nssub":nssub})
-                
-                
-                #take the last part of the folder 
+                    processing_list.append(
+                        {
+                            "folder": parent_folder,
+                            "ontologies": nsname,
+                            "vocabularies": "",
+                            "nssub": nssub,
+                        }
+                    )
+
+                # take the last part of the folder
                 log.debug(f"parent_folder={parent_folder}")
                 log.debug(f"processing {nsname} in {folder} in dir {dirs}")
-    #clear out processing list by comparing the folder key and checking if each dict with the same folder name has a value is bot vocabulary and ontology
+    # clear out processing list by comparing the folder key and checking if each dict with the same folder name has a value is bot vocabulary and ontology
     for item in processing_list:
         if item["ontologies"] == "" and item["vocabularies"] != "":
             processing_list.remove(item)
-    
-    #run over the processing list and create the combined index
-    #init result sets
+
+    # run over the processing list and create the combined index
+    # init result sets
     combined = dict()
     combined_in_err = set()
     for item in processing_list:
-        nscombined = combined_index_pub(baseuri, nsfolder, item["nssub"], item["ontologies"], outfolder, item["ontologies"], item["vocabularies"], template_path)
+        nscombined = combined_index_pub(
+            baseuri,
+            nsfolder,
+            item["nssub"],
+            item["ontologies"],
+            outfolder,
+            item["ontologies"],
+            item["vocabularies"],
+            template_path,
+        )
         if nscombined["error"]:
             log.error(f"failed to process combined index for {item['folder']}")
             log.error(f"error message: {nscombined['error_message']}")
             combined_in_err.add(item["folder"])
         combined[item["folder"]] = nscombined
-    return combined   
+    return combined
 
-def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vocabulary, template_path):
+
+def combined_index_pub(
+    baseuri, nsfolder, nssub, nsname, outfolder, ontology, vocabulary, template_path
+):
     log.debug(f"combined index to process: {nssub}/{nsname} in {nsfolder}")
-    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}/{nssub}, ontology={ontology}, vocabulary={vocabulary}")
+    log.debug(
+        f"other params: baseuri={baseuri}, outfolder={outfolder}/{nssub}, ontology={ontology}, vocabulary={vocabulary}"
+    )
     toreturn = dict()
     try:
         # generate a proper index.html file using an embedded jinja-template
-        prms = dict(ontology=ontology, baseuri=baseuri, vocabulary=vocabulary, nsname=nsname, nssub=nssub)
+        prms = dict(
+            ontology=ontology,
+            baseuri=baseuri,
+            vocabulary=vocabulary,
+            nsname=nsname,
+            nssub=nssub,
+        )
         templates_env = Environment(loader=FileSystemLoader(template_path))
         template = templates_env.get_template("template_combined_index.html")
         outcome = template.render(prms)
@@ -233,33 +291,38 @@ def combined_index_pub(baseuri, nsfolder, nssub, nsname, outfolder, ontology, vo
         outindexpath = outfolder / nssub / "index.html"
         with open(str(outindexpath), "w") as outfile:
             outfile.write(outcome)
-        log.debug(f"> INDEX --> overview of processed combined index written to '{outindexpath}'")
+        log.debug(
+            f"> INDEX --> overview of processed combined index written to '{outindexpath}'"
+        )
         toreturn["error"] = False
     except Exception as e:
         toreturn["error"] = True
-        log.debug(f"> INDEX --> error while processing combined index for {nssub}/{nsname}")
+        log.debug(
+            f"> INDEX --> error while processing combined index for {nssub}/{nsname}"
+        )
         log.error(e)
         toreturn["error_message"] = str(e)
     finally:
         return toreturn
-     
-def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
+
+
+def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
     nspath = (nsfolder / nssub / nsname).resolve()
     outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
     name = str(Path(nsname).stem)
     name_html = name + ".html"
-    name = name if str(nssub) == '.' else str(nssub) + "/" + name
+    name = name if str(nssub) == "." else str(nssub) + "/" + name
     outindexpath = (outfolder / nssub / name).resolve() / name_html
-    
+
     toreturn = dict()
     try:
         if nsname.endswith("_draft.csv"):
             draft = True
         else:
             draft = False
-            
+
         if draft:
             output_name_html = nsname.replace("_draft.csv", "_vocab.html")
             output_name_ttl = nsname.replace("_draft.csv", "_vocab.ttl")
@@ -271,84 +334,79 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder,template_path):
         template_name_ttl = "template_ttl.ttl"
         input_file = nsfolder / nssub / nsname
         log.debug(f"input_file={input_file}")
-        
-        #check if the output folder exists, if not create it
+
+        # check if the output folder exists, if not create it
         if draft:
             folder_name = nsname.replace("_draft.csv", "")
         else:
             folder_name = nsname.replace(".csv", "")
-        output_folder = outfolder / nssub /folder_name
+        output_folder = outfolder / nssub / folder_name
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
             output_folder.mkdir(parents=True)
-        outindexpath = (outfolder / output_name_html)
-        outttlpath = (outfolder / output_name_ttl)
+        outindexpath = outfolder / output_name_html
+        outttlpath = outfolder / output_name_ttl
         relref = str(outindexpath.relative_to(outfolder)).replace("\\", "/")
-        #html generation
+        # html generation
         args = {
-            "input":input_file.__str__(),
-            "output":(output_folder / output_name_html).__str__(),
-            "template_path":template_path,
-            "template_name":template_name_html,
-            "vars_dict":{
-                "baseuri":baseuri,
-                "title":str(nsname + " vocabulary").replace(".csv", ""),
-                "relref":str(relref).replace(".html", ""),
-                "draft":draft,
-                }
+            "input": input_file.__str__(),
+            "output": (output_folder / output_name_html).__str__(),
+            "template_path": template_path,
+            "template_name": template_name_html,
+            "vars_dict": {
+                "baseuri": baseuri,
+                "signposting": baseuri + "/" + str(nsname).replace(".csv", "") + ".ttl",
+                "title": str(nsname + " vocabulary").replace(".csv", ""),
+                "relref": str(relref).replace(".html", ""),
+                "draft": draft,
+            },
         }
         log.debug(f"arguments_pysubytd={args}")
         service = JinjaBasedGenerator(args["template_path"])
         source = {"_": SourceFactory.make_source(args["input"])}
         sink = SinkFactory.make_sink(args["output"], force_output=True)
         settings = GeneratorSettings()
-        service.process(
-            args["template_name"],
-            source,
-            settings,
-            sink,
-            args
-            )
-        #ttl generation
+        service.process(args["template_name"], source, settings, sink, args)
+        # ttl generation
         second_args = {
-            "input":input_file.__str__(),
-            "output":(outttlpath).__str__(),
-            "template_path":template_path,
-            "template_name":template_name_ttl,
-            "vars_dict":{
-                "baseuri":baseuri,
-                "title":str(nsname + " vocabulary").replace(".csv", ""),
-                "relref":str(relref).replace("_vocab.html", "")
-            }
+            "input": input_file.__str__(),
+            "output": (outttlpath).__str__(),
+            "template_path": template_path,
+            "template_name": template_name_ttl,
+            "vars_dict": {
+                "baseuri": baseuri,
+                "signposting": baseuri + "/" + nsname + ".ttl",
+                "title": str(nsname + " vocabulary").replace(".csv", ""),
+                "relref": str(relref).replace("_vocab.html", ""),
+            },
         }
         log.debug(f"arguments_pysubytd={second_args}")
-        service= JinjaBasedGenerator(second_args["template_path"])
+        service = JinjaBasedGenerator(second_args["template_path"])
         source = {"_": SourceFactory.make_source(second_args["input"])}
         sink = SinkFactory.make_sink(second_args["output"], force_output=True)
         service.process(
-            second_args["template_name"],
-            source,
-            settings,
-            sink,
-            second_args
-            )
+            second_args["template_name"], source, settings, sink, second_args
+        )
         shutil.copy((output_folder / output_name_html), outindexpath)
-        #shutil.copy((output_folder / output_name_ttl), outttlpath)
+        # shutil.copy((output_folder / output_name_ttl), outttlpath)
         toreturn["error"] = False
         toreturn["draft"] = draft
     except Exception as e:
-        toreturn['error'] = True
-        toreturn['error_message'] = str(e)
+        toreturn["error"] = True
+        toreturn["error_message"] = str(e)
     finally:
         return toreturn
-    
-def publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf=None):
+
+
+def publish_index_html(
+    baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf=None
+):
     enable_logging(logconf)
     log.debug(msg=f"publishing index.html to {outfolder}")
     log.debug(msg=f"baseuri={baseuri}")
     log.debug(msg=f"ontos={ontos} -- vocabs={vocabs}")
-    
-    #make an index.html using a template from the templates folder
+
+    # make an index.html using a template from the templates folder
     prms = dict(ontos=ontos, baseuri=baseuri, vocabs=vocabs)
     templates_env = Environment(loader=FileSystemLoader(str(template_path)))
     template = templates_env.get_template("template_index.html")
@@ -357,45 +415,52 @@ def publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocab
     outindexpath = outfolder + "/index.html"
     with open(str(outindexpath), "w") as outfile:
         outfile.write(outcome)
-    
-    
-def publish_vocabs(baseuri, nsfolder, outfolder, template_path,logconf=None):
-    enable_logging(logconf)
-    
-    #default target folder to input folder
-    outfolder = nsfolder if outfolder is None else outfolder
-    outfolder = Path(outfolder).resolve()
-    nsfolder = Path(nsfolder).resolve()
-    log.debug(f"publishing vocabs from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
-    
-    #init result sets
-    vocabs = dict()
-    vocabs_in_err = set()
-    
-    #run over nsfolder and process ontology files
-    for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
-        for nsname in nsfiles:
-            if nsname.endswith(".csv"):
-                log.debug(f"csv file at {folder} - {nsname} when walking {nsfolder}")
-                
-                nssub = Path(folder).relative_to(nsfolder)
-                nskey  =f"{str(nssub)}/{nsname}"
-                nspub = vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path)
-                if nspub['error']:
-                    log.debug(f"vocab {nskey} failed to publish")
-                    log.exception(nspub['error_message'])
-                    vocabs_in_err.add(nskey)
-                vocabs[nskey] = nspub 
-    return vocabs
 
-def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None):
+
+def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None):
     enable_logging(logconf)
 
     # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
     outfolder = Path(outfolder).resolve()
     nsfolder = Path(nsfolder).resolve()
-    log.debug(f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}")
+    log.debug(
+        f"publishing vocabs from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}"
+    )
+
+    # init result sets
+    vocabs = dict()
+    vocabs_in_err = set()
+
+    # run over nsfolder and process ontology files
+    for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+        for nsname in nsfiles:
+            if nsname.endswith(".csv"):
+                log.debug(f"csv file at {folder} - {nsname} when walking {nsfolder}")
+
+                nssub = Path(folder).relative_to(nsfolder)
+                nskey = f"{str(nssub)}/{nsname}"
+                nspub = vocabpub(
+                    baseuri, nsfolder, nssub, nsname, outfolder, template_path
+                )
+                if nspub["error"]:
+                    log.debug(f"vocab {nskey} failed to publish")
+                    log.exception(nspub["error_message"])
+                    vocabs_in_err.add(nskey)
+                vocabs[nskey] = nspub
+    return vocabs
+
+
+def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None):
+    enable_logging(logconf)
+
+    # default target folder to input folder
+    outfolder = nsfolder if outfolder is None else outfolder
+    outfolder = Path(outfolder).resolve()
+    nsfolder = Path(nsfolder).resolve()
+    log.debug(
+        f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}"
+    )
 
     # init result sets
     ontos = dict()
@@ -404,22 +469,25 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path ,logconf=None
     # run over nsfolder and process ontology files
     for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
         for nsname in nsfiles:
-            if nsname.endswith('.ttl'):
+            if nsname.endswith(".ttl"):
                 log.debug(f"ttl file at {folder} - {nsname} when walking {nsfolder}")
                 nssub = Path(folder).relative_to(nsfolder)
                 nskey = f"{str(nssub)}/{nsname}"
                 nspub = ontopub(baseuri, nsfolder, nssub, nsname, outfolder)
-                if bool(nspub.get("error")):  # if the error key is there and set to anything non-False
+                if bool(
+                    nspub.get("error")
+                ):  # if the error key is there and set to anything non-False
                     log.debug(f"error processing {nskey} --> {nspub}")
                     ontos_in_err.add(nskey)
                 ontos[nskey] = nspub
 
-    # copy any other stuff outside the actual pylode / ontology stuff 
+    # copy any other stuff outside the actual pylode / ontology stuff
     publish_misc(baseuri, nsfolder, outfolder)
 
     if len(ontos_in_err) > 0:
         raise OntoPubException(ontos, ontos_in_err)
     return ontos
+
 
 def combine_ttls(outfolder):
     """Will combine all the ttl files in the outfolder into a single ttl file
@@ -431,11 +499,11 @@ def combine_ttls(outfolder):
     for folder, dirs, nsfiles in os.walk(outfolder, topdown=False, followlinks=True):
         for file in nsfiles:
             if file.endswith(".ttl"):
-                #if file does not contain _vocabs then add it to the list
+                # if file does not contain _vocabs then add it to the list
                 if not file.endswith("_vocab.ttl"):
                     log.debug(msg=f"found an ontology ttl file {file} in {folder}")
                     ttl_files.append({"folder": folder, "file": file})
-    #loop over the ttl_files and check if there is another file with the same name but with _vocabs appedned to it and from the same folder
+    # loop over the ttl_files and check if there is another file with the same name but with _vocabs appedned to it and from the same folder
     for ttl_file in ttl_files:
         vocabs_file = ttl_file["file"].replace(".ttl", "_vocab.ttl")
         vocabs_path = Path(ttl_file["folder"]) / vocabs_file
@@ -443,33 +511,33 @@ def combine_ttls(outfolder):
             log.debug(msg=f"found vocabs file {vocabs_file} in {ttl_file['folder']}")
             ttl_file["vocabs_file"] = vocabs_file
             ttl_file["vocabs_path"] = vocabs_path
-            #read in contents of vocabs file and append them to the ttl file
+            # read in contents of vocabs file and append them to the ttl file
             with open(vocabs_path, "r") as vocabs_file:
                 vocabs_content = vocabs_file.read()
             with open(Path(ttl_file["folder"]) / ttl_file["file"], "a") as ttl_file:
                 ttl_file.write(vocabs_content)
-            #delete the vocabs file
+            # delete the vocabs file
             os.remove(path=vocabs_path)
-                
-                
 
 
 class OntoPubException(Exception):
     def __init__(self, ontos: dict, error_ontos: set):
         self.ontos = ontos
         self.error_ontos = error_ontos
-        self.message = f"failed to produce all {len(error_ontos)} out of {len(ontos)} found"
+        self.message = (
+            f"failed to produce all {len(error_ontos)} out of {len(ontos)} found"
+        )
         super().__init__(self.message)
 
 
 def main():
     load_dotenv()
     # read the action inputs
-    baseuri = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('BASE_URI')
+    baseuri = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("BASE_URI")
     nsfolder = sys.argv[2] if len(sys.argv) > 2 else "."
     outfolder = sys.argv[3] if len(sys.argv) > 3 else None
-    logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get('LOGCONF')
-    #load in logconf
+    logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("LOGCONF")
+    # load in logconf
     enable_logging(logconf)
     myfolder = Path(__file__).parent.absolute()
     template_path = myfolder / "templates"
@@ -478,19 +546,53 @@ def main():
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
     ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf)
-    vocabs= publish_vocabs(baseuri, nsfolder, outfolder, template_path ,logconf)
+    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf)
     log.debug(msg=f"ontos={ontos.keys()} -- vocabs={vocabs.keys()}")
-    
-    #function here that will make the index.html file with info concerning the ontologies and the vocabularies
-    publish_index_html(baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf)
+
+    # function here that will make the index.html file with info concerning the ontologies and the vocabularies
+    publish_index_html(
+        baseuri, nsfolder, outfolder, template_path, ontos, vocabs, logconf
+    )
     combine_ttls(outfolder)
-    # function ehre that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
-    #the following function is deprecated
-    #publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
-    
+
+    # crawl the outfolder and for each ttl file that does not contain _vocab or is the index file.
+    # create a line in the <head> of the index.html file that links to the ttl file
+    # line example <link
+    #  href="https://example.com/ontologies/ontology.ttl"
+    #  rel="describedby"
+    #  type="text/turtle"
+    # />
+
+    for folder, dirs, nsfiles in os.walk(outfolder, topdown=False, followlinks=True):
+        for file in nsfiles:
+            if (
+                file.endswith(".html")
+                and not file.endswith("index.html")
+                and not file.endswith("_vocab.html")
+            ):
+                with open(outfolder / file, "r") as html_file:
+                    html_content = html_file.read()
+                    # add <link
+                    #  href="./{{file}}.ttl"
+                    #  rel="describedby"
+                    #  type="text/turtle"
+                    # />
+                    # to the head of the html file
+                    html_content = html_content.replace(
+                        "</head>",
+                        f'<link href="./{file}.ttl" rel="describedby" type="text/turtle" /></head>',
+                    )
+                with open(outfolder / file, "w") as html_file:
+                    html_file.write(html_content)
+
+    # function here that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
+    # the following function is deprecated
+    # publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
+
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")
     print(f"::set-output name=vocabs::{vocabs.keys()}")
+
 
 if __name__ == "__main__":
     main()
