@@ -582,7 +582,7 @@ def main():
                     # to the head of the html file
                     html_content = html_content.replace(
                         "</head>",
-                        f'<link href="./{file}.ttl" rel="describedby" type="text/turtle" /></head>',
+                        f'<link href="./{file.replace(".html","")}.ttl" rel="describedby" type="text/turtle" /></head>',
                     )
                 with open(file_path, "w") as html_file:
                     html_file.write(html_content)
