@@ -339,8 +339,10 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         # check if the output folder exists, if not create it
         if draft:
             folder_name = nsname.replace("_draft.csv", "")
+            signposting = baseuri + "/" + str(nsname).replace("_draft.csv", "") + ".ttl"
         else:
             folder_name = nsname.replace(".csv", "")
+            signposting = baseuri + "/" + str(nsname).replace(".csv", "") + ".ttl"
         output_folder = outfolder / nssub / folder_name
         log.debug(f"output_folder={output_folder}")
         if not output_folder.exists():
@@ -356,7 +358,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
             "template_name": template_name_html,
             "vars_dict": {
                 "baseuri": baseuri,
-                "signposting": baseuri + "/" + str(nsname).replace(".csv", "") + ".ttl",
+                "signposting": signposting,
                 "title": str(nsname + " vocabulary").replace(".csv", ""),
                 "relref": str(relref).replace(".html", ""),
                 "draft": draft,
