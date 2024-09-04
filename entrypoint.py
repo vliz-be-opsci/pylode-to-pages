@@ -11,6 +11,7 @@ import shutil
 import logging
 import logging.config
 import yaml
+from pathlib import Path
 from dotenv import load_dotenv
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, BaseLoader
@@ -570,7 +571,8 @@ def main():
                 and not file.endswith("index.html")
                 and not file.endswith("_vocab.html")
             ):
-                with open(outfolder / file, "r") as html_file:
+                file_path = Path(folder) / file
+                with open(file_path, "r") as html_file:
                     html_content = html_file.read()
                     # add <link
                     #  href="./{{file}}.ttl"
@@ -582,7 +584,7 @@ def main():
                         "</head>",
                         f'<link href="./{file}.ttl" rel="describedby" type="text/turtle" /></head>',
                     )
-                with open(outfolder / file, "w") as html_file:
+                with open(file_path, "w") as html_file:
                     html_file.write(html_content)
 
     # function here that will genreate an index.html file with iframes for the ontology and for the possible vocabularies
