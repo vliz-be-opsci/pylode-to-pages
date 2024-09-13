@@ -150,18 +150,18 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
 
         toc_div = soup.find("div", id="toc")
         for div in soup.find_all("div", class_="property entity"):
-            for th in div.find_all("th"):
-                if th.text == "IRI":
-                    iri = th.find_next("td").find("code").text
-                    previous_id = div["id"]
-                    # find the a href tag in the div with id "toc" and replace the href with the iri.split("#")[1]
-                    for a in toc_div.find_all("a"):
-                        if a["href"] == "#" + previous_id:
-                            try:
+            try:
+                for th in div.find_all("th"):
+                    if th.text == "IRI":
+                        iri = th.find_next("td").find("code").text
+                        previous_id = div["id"]
+                        # find the a href tag in the div with id "toc" and replace the href with the iri.split("#")[1]
+                        for a in toc_div.find_all("a"):
+                            if a["href"] == "#" + previous_id:
                                 a["href"] = "#" + iri.split("#")[1]
-                            except:
-                                pass
-                    div["id"] = iri.split("#")[1]
+                        div["id"] = iri.split("#")[1]
+            except:
+                pass
 
         # write the soup back to the file
         with open(outhtmlpath, "w") as output_html:
