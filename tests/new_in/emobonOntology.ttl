@@ -1,168 +1,76 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix schema: <http://schema.org/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> . 
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix vann: <http://purl.org/vocab/vann/> .
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
-@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix prov: <http://www.w3.org/ns/prov#> . 
+@prefix qudt: <http://qudt.org/schema/qudt/>.
 
-@prefix emobon: <{{baseuri}}/{{name}}#> .
+@prefix emobon-core: <{{baseuri}}/core#> .
+@prefix emobon-sampling: <{{baseuri}}/{{name}}#> .
+@prefix emobon-sequence: <{{baseuri}}/sequence#> .
+
 <{{baseuri}}/{{name}}>
   a owl:Ontology ;
-  owl:versionIRI <http://www.embrc.eu/emobon/v.0.0.1/EmoBonOntology.rdf> ;
-  rdfs:label "EMO-BON Ontology"@en ;
+  owl:versionIRI <{{baseuri}}/{{name}}.ttl> ;
+  foaf:homepage  <https://marineregions.org/ontology/documentation.html> ;
+  rdfs:label     "The Sampling EMO-BON Ontology"@en ;
+  rdfs:comment   "The Sampling EMO-BON ontology provides definitions for the sampling classes and properties used in EMO-BON data."@en ;
+  dc:publisher   <https://www.vliz.be/> ;
+  dct:issued      "2023-03-17"^^xsd:date ;
+  dct:modified    "2023-07-26"^^xsd:date ;
+  dc:license     <https://creativecommons.org/licenses/by/4.0/> ;
+  dc:contributor 
+    <https://orcid.org/0000-0001-7251-9504>,
+    <https://orcid.org/0000-0002-5911-1536>,
+    <https://orcid.org/0000-0003-0663-5907>;
+  dc:creator <https://www.embrc.eu> ;
+  vann:preferredNamespacePrefix "emobon-sampling" ;
+  vann:preferredNamespaceUri    "{{baseuri}}/{{name}}#" .
+
+<https://orcid.org/0000-0001-7251-9504>
+        foaf:name         "Henriette Harmse" ;
+        schema:identifier   <https://orcid.org/0000-0001-7251-9504> ;
+        schema:email        <mailto:henriette007@ebi.ac.uk> ;
+        schema:affiliation  <https://www.embrc.eu> ;
 .
 
-### CLASSES ###
-schema:Thing
-  a owl:Class ;
-  rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty schema:identifier ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange <http://www.w3.org/ns/shacl#IRI>
-  ], [
-    a owl:Restriction ;
-    owl:onProperty schema:description ;
-    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ] ;
+<https://orcid.org/0000-0002-5911-1536>
+  a schema:Person ; 
+  foaf:name         "Katrina Exter" ;
+  schema:identifier   <https://orcid.org/0000-0002-5911-1536> ;
+  schema:email        <mailto:katrina.exter@vliz.be> ;
+  schema:affiliation  <https://www.vliz.be> ;
 .
 
-
-<{{baseuri}}/{{name}}#Observatory>
-  a owl:Class ;
-  rdfs:subClassOf schema:Thing, [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#broadBiome> ;
-    owl:someValuesFrom <http://purl.obolibrary.org/obo/ENVO_00000428> ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#localBiome> ;
-    owl:someValuesFrom <http://purl.obolibrary.org/obo/ENVO_00000428> ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#geoLocation> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onClass <http://www.opengis.net/ont/sf#Point> ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#sampleType> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onClass <{{baseuri}}/{{name}}#SampleType> ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#marineRegion> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:anyURI ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#observatoryId> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty <{{baseuri}}/{{name}}#observatorySampleId> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ] ;
+<https://orcid.org/0000-0003-0663-5907>
+  a schema:Person ;
+  foaf:name         "Laurian Van Maldeghem" ;
+  schema:identifier   <https://orcid.org/0000-0003-0663-5907> ;
+  schema:email        <mailto:laurian.van.maldeghem@vliz.be> ;
+  schema:affiliation  <https://www.vliz.be> ;
 .
 
-<http://purl.obolibrary.org/obo/ENVO_00000428> 
-  a owl:Class ;
+<https://www.vliz.be/>
+  a schema:Organization ;
+  schema:name   "Vlaams Instituut voor de Zee"@nl ;
+  schema:name   "Flanders Marine Institute"@en ;
+  schema:url    <https://www.vliz.be/> ;
+.
+
+<https://www.embrc.eu>
+  a schema:Organization ;
+  schema:name   "European Marine Biological Resource Centre"@en ;
+  schema:url    <https://www.embrc.eu> ;
 .
 
 
-<{{baseuri}}/{{name}}#SampleType>
-  a owl:Class ;
-  owl:equivalentClass [
-    a owl:Class ;
-    owl:oneOf (
-     <{{baseuri}}/{{name}}#Hard>
-     <{{baseuri}}/{{name}}#Soil>
-     <{{baseuri}}/{{name}}#Water>
-   )
-  ] ;
-.
-
-<{{baseuri}}/{{name}}#Hard> 
-  a owl:NamedIndividual, <{{baseuri}}/{{name}}#SampleType> ;
-.
-
-<{{baseuri}}/{{name}}#Soil> 
-  a owl:NamedIndividual, <{{baseuri}}/{{name}}#SampleType> ;
-.
-
-<{{baseuri}}/{{name}}#Water> 
-  a owl:NamedIndividual, <{{baseuri}}/{{name}}#SampleType> ;
-.
-
-schema:Organization
-  a owl:Class ;
-  rdfs:subClassOf schema:Thing, [
-    a owl:Restriction ;
-    owl:onProperty schema:address ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onClass schema:PostalAddress ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty schema:legalName ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ] ;
-.
-
-<http://www.embrc.eu/emo-bon/EmoBonOntology.rdf#Organization>
-  a owl:Class ;
-  rdfs:subClassOf schema:Organization, [
-    a owl:Restriction ;
-    owl:onProperty <http://www.embrc.eu/emo-bon/EmoBonOntology.rdf#edmoId> ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:positiveInteger ;
-  ] ;
-.
-
-schema:PostalAddress
-  a owl:Class ;
-  rdfs:subClassOf schema:ContactPoint, [
-    a owl:Restriction ;
-    owl:onProperty schema:addressCountry ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty schema:postalCode ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ], [
-    a owl:Restriction ;
-    owl:onProperty schema:streetAddress ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange xsd:string ;
-  ] ;
-.
-
-schema:ContactPoint 
-  a owl:Class ;
-.
-
-<http://www.opengis.net/ont/sf#Geometry>
-  a owl:Class ;
-  rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty geo:asWKT ;
-    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-    owl:onDataRange geo:wktLiteral ;
-  ] ;
-.
-
-<http://www.opengis.net/ont/sf#Point>
-  a owl:Class ;
-  rdfs:subClassOf <http://www.opengis.net/ont/sf#Geometry> ;
-.
-
-#### CLASSES Sample Extension ####
+#### CLASSES Sample ####
 <{{baseuri}}/{{name}}#siteInfo>
     a owl:Class ; 
     rdfs:isDefinedBy <{{baseuri}}/{{name}}> ;
@@ -171,125 +79,15 @@ schema:ContactPoint
     rdfs:subClassOf rdfs:comment ;
 .
 
-#### CLASSES Sequence Extension ####
-<{{baseuri}}/{{name}}#SequencingRun>
-    a owl:Class ; 
-    rdfs:isDefinedBy <{{baseuri}}/{{name}}> ;
-    rdfs:comment "A sequencing run activity" ; 
-    rdfs:label "A sequencing run" ; 
-    rdfs:subClassOf prov:Activity ;
-.
 
-<{{baseuri}}/{{name}}#Batch>
-    a owl:Class ; 
-    rdfs:isDefinedBy <{{baseuri}}/{{name}}> ;
-    rdfs:comment "A batch in a sequencing run" ; 
-    rdfs:label "A batch in a sequencing run" ; 
-    rdfs:subClassOf prov:Entity ;
-.
-
-
-### PROPERTIES ###
-<{{baseuri}}/{{name}}#hasBiome>
-  a owl:ObjectProperty ;
-  rdfs:domain <{{baseuri}}/{{name}}#Observatory> ;
-  rdfs:range <http://purl.obolibrary.org/obo/ENVO_00000428> ;
-.
-
-<{{baseuri}}/{{name}}#broadBiome>
-  a owl:ObjectProperty ;
-  rdfs:subPropertyOf <{{baseuri}}/{{name}}#hasBiome> ;
-.
-
-<{{baseuri}}/{{name}}#localBiome>
-  a owl:ObjectProperty ;
-  rdfs:subPropertyOf <{{baseuri}}/{{name}}#hasBiome> ;
-.
-
-<{{baseuri}}/{{name}}#geoLocation>
-  a owl:ObjectProperty ;
-  rdfs:range <http://www.opengis.net/ont/sf#Point> ;
-.
-
-<{{baseuri}}/{{name}}#sampleType>
-  a owl:ObjectProperty ;
-  rdfs:range <{{baseuri}}/{{name}}#SampleType> ;
-.
-
-schema:address
-  a owl:ObjectProperty ;
-  rdfs:range schema:PostalAddress ;
-.
-
-
-<{{baseuri}}/{{name}}#marineRegion>
-  a owl:DatatypeProperty ;
-  rdfs:range xsd:anyURI ;
-.
-
-<{{baseuri}}/{{name}}#observatoryId>
-  a owl:DatatypeProperty ;
-  rdfs:domain <{{baseuri}}/{{name}}#Observatory> ;
-  rdfs:range xsd:string ;
-.
-
-<{{baseuri}}/{{name}}#observatorySampleId>
-  a owl:DatatypeProperty ;
-  rdfs:domain <{{baseuri}}/{{name}}#Observatory> ;
-  rdfs:range xsd:string ;
-.
-
-<{{baseuri}}/{{name}}#edmoId>
-  a owl:DatatypeProperty, owl:FunctionalProperty ;
-  rdfs:domain <{{baseuri}}/{{name}}#Organization> ;
-  rdfs:range xsd:positiveInteger ;
-.
-
-schema:legalName
-  a owl:DatatypeProperty, owl:FunctionalProperty ;
-  rdfs:domain schema:Organization ;
-  rdfs:range xsd:string ;
-.
-
-geo:asWKT
-  a owl:DatatypeProperty ;
-  rdfs:domain <http://www.opengis.net/ont/sf#Geometry> ;
-  rdfs:range geo:wktLiteral ;
-.
-
-schema:addressCountry
-  a owl:DatatypeProperty ;
-  rdfs:range xsd:string ;
-.
-
-schema:description
-  a owl:DatatypeProperty ;
-  rdfs:range xsd:string ;
-.
-
-schema:identifier
-  a owl:DatatypeProperty, owl:FunctionalProperty ;
-  rdfs:range xsd:anyURI ;
-.
-
-schema:postalCode 
-  a owl:DatatypeProperty 
-.
-
-schema:streetAddress
-  a owl:DatatypeProperty ;
-  rdfs:domain schema:PostalAddress ;
-  rdfs:range xsd:string ;
-.
-
-#### PROPERTIES Sample Extension ####
+#### PROPERTIES Sample ####
 <{{baseuri}}/{{name}}#linkedToObservatory> 
     a                     owl:ObjectProperty ;
     rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
     rdfs:comment          "The observatory that is linked to the sampling event."@en ;
     rdfs:label            "is linked to observatory"@en ;
     rdfs:domain           sosa:Sampling ;
-    rdfs:range            <{{baseuri}}/{{name}}#Observatory> ;
+    rdfs:range            emobon-core:Observatory ;
 .
 
 <{{baseuri}}/{{name}}#enaProjAccNum>
@@ -306,7 +104,7 @@ schema:streetAddress
     rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
     rdfs:comment        "ENA study accession number associated to the observatory."@en ;
     rdfs:label          "has ENA study accession number"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Observatory> ;
+    rdfs:domain         emobon-core:Observatory ;
     rdfs:range          xsd:string ;
 .
 
@@ -324,7 +122,7 @@ schema:streetAddress
     rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
     rdfs:comment        "The MIxS extension for reporting of measurements and observations obtained from one or more of the environments where a sample was obtained"@en ;
     rdfs:label          "has Mixs Package"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Observatory> ;
+    rdfs:domain         emobon-core:Observatory ;
     rdfs:range          xsd:string ;
 .
 
@@ -333,7 +131,7 @@ schema:streetAddress
     rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
     rdfs:comment        "The name of the marine region"@en ;
     rdfs:label          "Name associated with the marine region."@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Observatory> ;
+    rdfs:domain         emobon-core:Observatory ;
     rdfs:range          xsd:string ;
 .
 
@@ -346,7 +144,7 @@ schema:streetAddress
                             a owl:Class ; 
                             owl:unionOf (
                                 sosa:Sampling
-                                <{{baseuri}}/{{name}}#Observatory>
+                                emobon-core:Observatory
                             ) ; 
                         ] ;
     rdfs:range          xsd:nonNegativeInteger ;
@@ -361,7 +159,7 @@ schema:streetAddress
                             a owl:Class ; 
                             owl:unionOf (
                                 sosa:Sampling
-                                <{{baseuri}}/{{name}}#Observatory>
+                                emobon-core:Observatory
                             ) ; 
                         ] ;
     rdfs:range          xsd:string ;
@@ -372,7 +170,7 @@ schema:streetAddress
     rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
     rdfs:comment        "Information about the sediment type of the sample based on major constituents"@en ;
     rdfs:label          "Sediment type of a soil sample"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Observatory> ;
+    rdfs:domain         emobon-core:Observatory ;
     rdfs:range          xsd:string ;
 .
 
@@ -512,314 +310,4 @@ schema:streetAddress
     rdfs:label          "upper filter size"@en ;
     rdfs:domain         sosa:Sample ;
     rdfs:range          xsd:float ; 
-.
-
-#### PROPERTIES Sequence Extension (Batch) ####
-<{{baseuri}}/{{name}}#associatedBatch>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "The batch associated with as sequencing run"@en ;
-    rdfs:label            "associated batch"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            <{{baseuri}}/{{name}}#Batch> ;
-.
-<{{baseuri}}/{{name}}#associatedSample>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "The sample associated with a batch"@en ;
-    rdfs:label            "associated sample"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range            sosa:Sample, prov:Entity ;
-.
-
-<{{baseuri}}/{{name}}#batchProcessingReady>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Indication whether batch is processing ready"@en ;
-    rdfs:label          "batch processing ready"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:boolean ; 
-.
-
-<{{baseuri}}/{{name}}#batchProductionDeployment>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Indication whether batch is ready for production deployment"@en ;
-    rdfs:label          "batch production deployment"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:boolean ; 
-.
-
-<{{baseuri}}/{{name}}#batchSender>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The sender of a batch"@en ;
-    rdfs:label          "batch sender"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#batchReceiver>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The receiver of a batch"@en ;
-    rdfs:label          "batch receiver"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#batchNumber>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The batch number"@en ;
-    rdfs:label          "batch number"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:integer ; 
-.
-
-<{{baseuri}}/{{name}}#batchStatus>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The status of the batch"@en ;
-    rdfs:label          "batch status"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          [
-                          a owl:DataRange ; 
-                          owl:oneof (
-                            "manual"^^xsd:string
-                            "test"^^xsd:string
-                            "processing"^^xsd:string
-                            "done"^^xsd:string
-                          ) 
-                        ] ; 
-.
-
-<{{baseuri}}/{{name}}#shippingDate>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The date when the batch was shipped"@en ;
-    rdfs:label          "shipping date"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:date ; 
-.
-
-<{{baseuri}}/{{name}}#arrivalDate>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "The date when the batch arrived"@en ;
-    rdfs:label          "arrival date"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#Batch> ;
-    rdfs:range          xsd:date ; 
-.
-
-#### PROPERTIES Sequence Extension (SequencingRun) ####
-<{{baseuri}}/{{name}}#sop>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Standard operating procedures used in the sequencing molecular work"@en ;
-    rdfs:label          "relevant standard operating procedures for the sequencing work"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string, xsd:anyURI ; 
-.
-
-<{{baseuri}}/{{name}}#electronicResource>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Relevant electronic resources for the sequencing molecular work. Resources may be provided for any of the steps/methods followed"@en ;
-    rdfs:label          "relevant electronic resources for the sequencing work"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string, xsd:anyURI ; 
-.
-
-<{{baseuri}}/{{name}}#proMockSeqReadsFile>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "Filename given by the sequencing centre to the sequencing reads produced by the prokaryote mock community included in the same sequencing run as the sample"@en ;
-    rdfs:label            "correspoding prokaryotes mock community sequencing reads filename"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            emobon:SequencingReadsFile , schema:CreativeWork ;
-.
-
-<{{baseuri}}/{{name}}#eukMockSeqReadsFile>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "Filename given by the sequencing centre to the sequencing reads produced by the eukaryote mock community included in the same sequencing run as the sample"@en ;
-    rdfs:label            "correspoding eukaryotes mock community sequencing reads filename"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            emobon:SequencingReadsFile , schema:CreativeWork ;
-.
-
-<{{baseuri}}/{{name}}#seqReadsFile>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "Filename given by the sequencing centre to the sequencing reads produced"@en ;
-    rdfs:label            "sequencing reads filename"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            emobon:SequencingReadsFile , schema:CreativeWork ;
-.
-
-<{{baseuri}}/{{name}}#enaRunAccNum>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "ENA run accession number associated to the sequencing run."@en ;
-    rdfs:label          "has ENA run accession number"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ;
-.
-
-<{{baseuri}}/{{name}}#dnaConcentration>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "DNA concentration measured, using a specified DNA concentration measurement method, after DNA extraction"@en ;
-    rdfs:label            "dna concentration after extraction"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            sosa:Observation ;
-.
-
-<{{baseuri}}/{{name}}#dnaQuantity_PostExtraction>
-    a                     owl:ObjectProperty ;
-    rdfs:isDefinedBy      <{{baseuri}}/{{name}}> ;
-    rdfs:comment          "Total DNA quantity calculated from the DNA concentration measured after extraction"@en ;
-    rdfs:label            "dna quantity after extraction"@en ;
-    rdfs:domain           <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range            sosa:Result, qudt:QuantityValue ;
-.
-
-<{{baseuri}}/{{name}}#pcrConditions>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Description of reaction conditions and components of PCR in the form of  'initial denaturation:94degC_1.5min; annealing=...'. If the sample is used for metagenomics add 'metag'"@en ;
-    rdfs:label          "pcr conditions"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#pcrPrimers>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "PCR primers that were used to amplify the sequence of the targeted gene, locus or subfragment. This field should contain all the primers used for a single PCR reaction if multiple forward or reverse primers are present in a single PCR reaction. The primer sequence should be reported in uppercase letters. If the sample is used for metagenomics add 'metag'"@en ;
-    rdfs:label          "pcr primers"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#libLayout>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Specify whether to expect single, paired, or other configuration of reads"@en ;
-    rdfs:label          "library layout"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#analysisWorkflow>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Analysis workflow followed"@en ;
-    rdfs:label          "target gene"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          [
-                          a owl:DataRange ; 
-                          owl:oneof (
-                            "METAGENOMIC"^^xsd:string
-                            "GENOMIC"^^xsd:string
-                            "GENOMIC SINGLE CELL"^^xsd:string
-                            "TRANSCRIPTOMIC"^^xsd:string
-                            "TRANSCRIPTOMIC SINGLE CELL"^^xsd:string
-                            "METATRANSCRIPTOMIC"^^xsd:string
-                            "SYNTHETIC"^^xsd:string
-                            "VIRAL RNA"^^xsd:string
-                            "OTHER"^^xsd:string
-                          )  
-                        ] ; 
-.
-
-<{{baseuri}}/{{name}}#targetGene>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Targeted gene or locus name for marker gene studies (e.g. for metabarcoding). If the sample is used for metagenomics add 'metag'"@en ;
-    rdfs:label          "target gene"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#targetSubfragment>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Name of subfragment of a gene or locus. Important to e.g. identify special regions on marker genes like V6 on 16S rRNA. If the sample is used for metagenomics add 'metag'"@en ;
-    rdfs:label          "target subfragment"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#nucleidAcidExtractionSource>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "A link to a literature reference, electronic resource or a standard operating procedure (SOP), that describes the material separation to recover the nucleic acid fraction from a sample"@en ;
-    rdfs:label          "nucleic acid extraction"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:anyURI ; 
-.
-
-<{{baseuri}}/{{name}}#nucleidAcidAmplificationSource>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "A link to a literature reference, electronic resource or a standard operating procedure (SOP), that describes the enzymatic amplification (PCR, TMA, NASBA) of specific nucleic acids. If the sample is used for metagenomics add 'metag'"@en ;
-    rdfs:label          "nucleic acid amplification"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:anyURI ; 
-.
-
-<{{baseuri}}/{{name}}#countOfLibReads>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Total number of clones sequenced from the library"@en ;
-    rdfs:label          "library reads sequenced"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:integer ; 
-.
-
-<{{baseuri}}/{{name}}#seqMethod>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Sequencing method used; e.g. Sanger, pyrosequencing, ABI-solid"@en ;
-    rdfs:label          "sequencing method"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#seqQuality>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Indicate if the sequence has been called by automatic systems (none) or undergone a manual editing procedure (e.g. by inspecting the raw data or chromatograms). Applied only for sequences that are not submitted to SRA,ENA or DRA"@en ;
-    rdfs:label          "sequence quality check"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#adapters>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Adapters provide priming sequences for both amplification and sequencing of the sample-library fragments. Both adapters should be reported; in uppercase letters"@en ;
-    rdfs:label          "adapters"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-<{{baseuri}}/{{name}}#multiplexID>
-    a                   owl:DatatypeProperty ;
-    rdfs:isDefinedBy    <{{baseuri}}/{{name}}> ;
-    rdfs:comment        "Molecular barcodes, called Multiplex Identifiers (MIDs), that are used to specifically tag unique samples in a sequencing run. Sequence should be reported in uppercase letters"@en ;
-    rdfs:label          "multiplex identifiers"@en ;
-    rdfs:domain         <{{baseuri}}/{{name}}#SequencingRun> ;
-    rdfs:range          xsd:string ; 
-.
-
-### Datatypes ###
-geo:wktLiteral 
-  a rdfs:Datatype ;
-.
-
-<http://www.w3.org/ns/shacl#IRI> 
-  a rdfs:Datatype ;
 .

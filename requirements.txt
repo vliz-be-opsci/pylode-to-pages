@@ -5,3 +5,4 @@ python-dotenv
 flake8
 pytest
 pysubyt
+beautifulsoup4

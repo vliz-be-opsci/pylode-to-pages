@@ -14,6 +14,7 @@ import yaml
 from pathlib import Path
 from dotenv import load_dotenv
 from pathlib import Path
+import bs4
 from jinja2 import Environment, FileSystemLoader, BaseLoader
 from pysubyt import JinjaBasedGenerator, SourceFactory, SinkFactory, GeneratorSettings
 from pylode import OntPub, PylodeError, __version__ as plv
@@ -137,6 +138,32 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.debug(f"> {name} --> ontology loaded to pylode from '{outpath}'")
         # ask pylode to make the html
         od.make_html(destination=outhtmlpath, include_css=False)
+
+        # take the outhtmlpath and open it with bs4
+        output_html = open(outhtmlpath, "r")
+        soup = bs4.BeautifulSoup(output_html, "html.parser")
+        # find all divs with class="property entity"
+        # then find the  <th>IRI</th> in that div
+        # then take the <td><code>https://example.org/pylode2pages-test/emobonOntology#enaProjAccNum</code></td> that is next to the <th>IRI</th>
+        # copy the text between the # and the </code> tag
+        # replace the div id with that text
+
+        toc_div = soup.find("div", id="toc")
+        for div in soup.find_all("div", class_="property entity"):
+            for th in div.find_all("th"):
+                if th.text == "IRI":
+                    iri = th.find_next("td").find("code").text
+                    previous_id = div["id"]
+                    # find the a href tag in the div with id "toc" and replace the href with the iri.split("#")[1]
+                    for a in toc_div.find_all("a"):
+                        if a["href"] == "#" + previous_id:
+                            a["href"] = "#" + iri.split("#")[1]
+                    div["id"] = iri.split("#")[1]
+
+        # write the soup back to the file
+        with open(outhtmlpath, "w") as output_html:
+            output_html.write(str(soup))
+
         log.debug(f"> {name} --> html produced to '{outhtmlpath}'")
         # also add an extra copy from name.html to name/index.html AND for the css as well
         shutil.copy(outhtmlpath, outindexpath)
