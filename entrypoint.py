@@ -157,7 +157,10 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
                     # find the a href tag in the div with id "toc" and replace the href with the iri.split("#")[1]
                     for a in toc_div.find_all("a"):
                         if a["href"] == "#" + previous_id:
-                            a["href"] = "#" + iri.split("#")[1]
+                            try:
+                                a["href"] = "#" + iri.split("#")[1]
+                            except:
+                                pass
                     div["id"] = iri.split("#")[1]
 
         # write the soup back to the file
