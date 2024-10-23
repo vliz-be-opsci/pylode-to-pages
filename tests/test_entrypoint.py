@@ -58,5 +58,26 @@ def test_main():
     assert_result(baseuri, outfolder, ontos)
 
 
+def test_vocabs():
+    enable_test_logging()
+    log.info(
+        f"Running tests in {__file__} "
+        + "with -v(erbose) and -s(no stdout capturing) "
+        + "and logging to stdout, level controlled by env var ${PYTEST_LOGCONF}"
+    )
+    parent = Path(__file__).resolve().parent
+    outfolder = parent / "new_out"
+    shutil.rmtree(outfolder, ignore_errors=True)
+    nsfolder = parent / "new_in"
+
+    baseuri = "https://example.org/pylode2pages-test"
+    ontos = ep.publish_ontologies(baseuri, str(nsfolder), str(outfolder), "templates")
+    vocabs = ep.publish_vocabs(baseuri, str(nsfolder), str(outfolder), "templates")
+    ep.publish_index_html(
+        baseuri, str(nsfolder), str(outfolder), "templates", ontos, vocabs
+    )
+    log.info(f"ontologies produced == {ontos}")
+
+
 if __name__ == "__main__":
     run_single_test(__file__)

@@ -314,20 +314,22 @@
     <div id="content">
       <div class="section" id="concepts">
         <h2>Concepts</h2>
-
-        <div class="concept entity" id="{{_.ID}}">
+        {% for row in sets['_']%}
+        <div class="concept entity" id="{{row.ID}}">
           <h3>
-            {{_.PREFLABEL_EN}}
+            {{row.PREFLABEL_EN}}
             <sup class="sup-op" title="SKOS concept">cc</sup>
           </h3>
           <table>
             <tr>
               <th>IRI</th>
               <td>
-                <code>{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{_.ID}}</code>
+                <code
+                  >{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.ID}}</code
+                >
               </td>
             </tr>
-            {%if _.DEFINITION_EN%}
+            {%if row.DEFINITION_EN%}
             <tr>
               <th>
                 <a
@@ -337,9 +339,9 @@
                   >Description</a
                 >
               </th>
-              <td><p>{{_.DEFINITION_EN}}</p></td>
+              <td><p>{{row.DEFINITION_EN}}</p></td>
             </tr>
-            {%endif%} {%if _.ALTLABEL_EN%}
+            {%endif%} {%if row.ALTLABEL_EN%}
             <tr>
               <th>
                 <a
@@ -349,12 +351,12 @@
                   >Alternative Label</a
                 >
               </th>
-              <td><p>{{_.ALTLABEL_EN}}</p></td>
+              <td><p>{{row.ALTLABEL_EN}}</p></td>
             </tr>
 
             <tr>
-              {%endif%} {%if _.BROADER%} {%-set BROADER =
-              _.BROADER.replace('[','').replace(']','').split(';')%}
+              {%endif%} {%if row.BROADER%} {%-set BROADER =
+              row.BROADER.replace('[','').replace(']','').split(';')%}
             </tr>
 
             <tr>
@@ -376,8 +378,8 @@
                 {% endfor %}
               </td>
             </tr>
-            {%endif%} {%if _.NARROWER%} {%-set NARROWER =
-            _.NARROWER.replace('[','').replace(']','').split(';')%}
+            {%endif%} {%if row.NARROWER%} {%-set NARROWER =
+            row.NARROWER.replace('[','').replace(']','').split(';')%}
             <tr>
               <th>
                 <a
@@ -400,7 +402,7 @@
             {%endif%}
           </table>
         </div>
-        {% if ctrl.isLast%}
+        {% endfor %}
       </div>
       <div id="namespaces">
         <h2>Namespaces</h2>
@@ -501,4 +503,3 @@
     </div>
   </body>
 </html>
-{% endif %}

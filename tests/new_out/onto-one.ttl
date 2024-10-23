@@ -37,13 +37,3 @@ tst1:CClass1
   rdfs:comment      "Concept Class Test for onto-one."@en ;
   rdfs:label        "ConceptClass#1"@en ;
   rdfs:subClassOf   dc:Location, skos:Concept .
-<https://example.org/pylode2pages-test/onto-one#10>
-        rdf:type               skos:Concept ;
-        dc:date                "2000-01-01" ;
-        dc:identifier          "10" ;
-        skos:prefLabel         "test 2"@en ;
-        skos:broader            <https://example.org/pylode2pages-test/onto-one#7> , <https://example.org/pylode2pages-test/onto-one#8> , <https://example.org/pylode2pages-test/onto-one#9> ,;
-        skos:narrower           <https://example.org/pylode2pages-test/onto-one#1> ,;
-        skos:definition        " second test"@en ;
-        
-        .
