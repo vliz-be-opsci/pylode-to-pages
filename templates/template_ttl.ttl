@@ -10,11 +10,23 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
         skos:prefLabel         "{{row.PREFLABEL_EN}}"@en ;
         {%-if '[' in  row.BROADER -%}
         {%-set BROADER = row.BROADER.replace('[','').replace(']','').split(';')%}
-        skos:broader           {% for B in BROADER %} <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{B}}>{% if not forloop.last %} ,{% endif %}{% endfor %};
+        skos:broader           {%for B in BROADER-%} 
+                                        <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{B}}> 
+                                        {%- if not loop.last -%}
+                                        ,                  
+                                        {%- else -%}
+                                        {%- endif -%}
+                                {%endfor%};
         {%-endif%}
         {%-if '[' in row.NARROWER -%}
         {%-set NARROWER = row.NARROWER.replace('[','').replace(']','').split(';')%}
-        skos:narrower          {%for N in NARROWER%} <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{N}}>{% if not forloop.last %} ,{% endif %}{%endfor%};
+        skos:narrower          {%for N in NARROWER-%} 
+                                <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{N}}>
+                                {%- if not loop.last -%}
+                                ,                  
+                                {%- else -%}
+                                {%- endif -%}
+                                {%endfor%};
         {%-endif%}
         {%if row.DEFINITION_EN-%}
         skos:definition        "{{row.DEFINITION_EN}}"@en ;
