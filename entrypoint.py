@@ -337,6 +337,11 @@ def combined_index_pub(
         return toreturn
 
 
+def camel_case(value):
+    words = value.split(" ")
+    return words[0].lower() + "".join(word.title() for word in words[1:])
+
+
 def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
     log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
@@ -400,6 +405,45 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         sink = SinkFactory.make_sink(args["output"], force_output=True)
         settings = GeneratorSettings()
         service.process(args["template_name"], source, settings, sink, args)
+
+        # take the output html and parse it with bs4
+        output_html = open(output_folder / output_name_html, "r")
+        log.debug(f"output_html={output_html}")
+        soup = bs4.BeautifulSoup(output_html, "html.parser")
+        # find all divs with class="concept entity"
+        # then find the  <th>IRI</th> in that div
+        # replace the part after the # with the same part where the same string with not spaces and for each char after the space a capital letter
+        # then take the <td><code>https://example.org/pylode2pages-test/emobonOntology#enaProjAccNum</code></td> that is next to the <th>IRI</th>
+        # copy the text between the # and the </code> tag
+        # replace the div id with that text
+
+        toc_div = soup.find("div", id="toc")
+        for div in soup.find_all("div", class_="concept entity"):
+            try:
+                for th in div.find_all("th"):
+                    if th.text == "IRI":
+                        iri_element = th.find_next("td").find("code")
+                        iri = th.find_next("td").find("code").text
+                        log.debug(f"iri={iri}")
+                        previous_id = div["id"]
+                        # find the a href tag in the div with id "toc" and replace the href with the iri.split("#")[1]
+                        for a in toc_div.find_all("a"):
+                            if a["href"] == "#" + previous_id:
+
+                                # begin with the changing of the href
+                                new_id = camel_case(iri.split("#")[1])
+                                log.debug(f"new_id={new_id}")
+                                a["href"] = "#" + new_id
+                        div["id"] = new_id
+                        # replace the iri split part with the new_id
+                        iri_element.string = iri.replace(iri.split("#")[1], new_id)
+            except:
+                pass
+
+        # write the soup back to the file
+        with open(output_folder / output_name_html, "w") as output_html:
+            output_html.write(str(soup))
+
         # ttl generation
         second_args = {
             "input": input_file.__str__(),
