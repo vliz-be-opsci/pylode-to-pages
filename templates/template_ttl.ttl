@@ -3,10 +3,10 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
 {% for row in sets['_']%}
-<{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.ID}}>
+<{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.PREFLABEL_EN}}>
         rdf:type               skos:Concept ;
         dc:date                "{{row.DATE}}" ;
-        dc:identifier          "{{row.ID}}" ;
+        dc:identifier          "{{row.PREFLABEL_EN}}" ;
         skos:prefLabel         "{{row.PREFLABEL_EN}}"@en ;
         {%-if '[' in  row.BROADER -%}
         {%-set BROADER = row.BROADER.replace('[','').replace(']','').split(';')%}

@@ -315,7 +315,7 @@
       <div class="section" id="concepts">
         <h2>Concepts</h2>
         {% for row in sets['_']%}
-        <div class="concept entity" id="{{row.ID}}">
+        <div class="concept entity" id="{{row.PREFLABEL_EN}}">
           <h3>
             {{row.PREFLABEL_EN}}
             <sup class="sup-op" title="SKOS concept">cc</sup>
@@ -325,7 +325,7 @@
               <th>IRI</th>
               <td>
                 <code
-                  >{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.ID}}</code
+                  >{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.PREFLABEL_EN}}</code
                 >
               </td>
             </tr>
@@ -461,7 +461,7 @@
           <ul class="second">
             {% for row in sets['_']%}
             <li>
-              <a href="#{{row.ID}}">{{row.PREFLABEL_EN}}</a>
+              <a href="#{{row.PREFLABEL_EN}}">{{row.PREFLABEL_EN}}</a>
             </li>
 
             <li>{% endfor %}</li>
