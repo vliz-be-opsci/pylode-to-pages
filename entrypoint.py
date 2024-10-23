@@ -464,6 +464,27 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         service.process(
             second_args["template_name"], source, settings, sink, second_args
         )
+
+        # open the ttl file and make the same id changes as in the html file
+        output_ttl = open(outttlpath, "r")
+        log.debug(f"output_ttl={output_ttl}")
+        new_lines = []
+        for line in output_ttl:
+            # if line starts with < then it is a line that contains an iri
+            if line.startswith("<"):
+                log.debug(f"line={line}")
+                # get the last part of the iri
+                new_id = camel_case(line.split("#")[1])
+                log.debug(f"new_id={new_id}")
+                line = line.replace(line.split("#")[1], new_id)
+
+            new_lines.append(line)
+
+        # write the changes back to the ttl file
+        with open(outttlpath, "w") as output_ttl:
+            for line in new_lines:
+                output_ttl.write(line)
+
         shutil.copy((output_folder / output_name_html), outindexpath)
         # shutil.copy((output_folder / output_name_ttl), outttlpath)
         toreturn["error"] = False
