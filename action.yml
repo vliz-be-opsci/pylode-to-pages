@@ -21,6 +21,10 @@ inputs:
     description: 'Log conf file in yml'
     required: false
     default: 'logconf.yml'
+  ignore_folders:
+    description: 'Comma-separated list of folder paths to ignore during processing (e.g., "tests,docs,.git")'
+    required: false
+    default: ''
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -29,3 +33,4 @@ runs:
     - ${{ inputs.nsfolder }}
     - ${{ inputs.outfolder }}
     - ${{ inputs.logconf }}
+    - ${{ inputs.ignore_folders }}

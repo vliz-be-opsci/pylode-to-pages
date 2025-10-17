@@ -79,5 +79,37 @@ def test_vocabs():
     log.info(f"ontologies produced == {ontos}")
 
 
+def test_ignore_folders():
+    enable_test_logging()
+    log.info("Testing ignore_folders functionality")
+    parent = Path(__file__).resolve().parent
+    outfolder = parent / "ignore-test-out"
+    shutil.rmtree(outfolder, ignore_errors=True)
+    nsfolder = parent / "ignore-test"
+
+    baseuri = "https://example.org/pylode2pages-test"
+
+    # Test with ignore_folders set to "should-ignore"
+    ontos = ep.publish_ontologies(
+        baseuri, str(nsfolder), str(outfolder), "templates", ignore_folders="should-ignore"
+    )
+    vocabs = ep.publish_vocabs(
+        baseuri, str(nsfolder), str(outfolder), "templates", ignore_folders="should-ignore"
+    )
+
+    # Assert that only the should-process folder was processed
+    log.info(f"ontologies produced == {ontos.keys()}")
+
+    # Check that should-process/onto-one.ttl was processed
+    assert any("should-process/onto-one.ttl" in key for key in ontos.keys()), \
+        "should-process/onto-one.ttl should be processed"
+
+    # Check that should-ignore/ignored-onto.ttl was NOT processed
+    assert not any("should-ignore" in key for key in ontos.keys()), \
+        "should-ignore folder should be ignored"
+
+    log.info("ignore_folders test passed successfully")
+
+
 if __name__ == "__main__":
     run_single_test(__file__)
