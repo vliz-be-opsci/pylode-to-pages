@@ -186,12 +186,16 @@ def ontopub(baseuri, nsfolder, nssub, nsname, outfolder):
         log.error(
             f"> {name} --> pylode v.{plv} failed to process ontology at '{nspath}'"
         )
+        log.error(f"> {name} --> Error message: {str(ple)}")
         log.exception(ple)
+        nspub["error_message"] = f"Pylode error: {str(ple)}"
     except Exception as e:
         log.error(
             f"> {name} --> unexpected failure in processing ontology at '{nspath}'"
         )
+        log.error(f"> {name} --> Error message: {str(e)}")
         log.exception(e)
+        nspub["error_message"] = f"Unexpected error: {str(e)}"
     finally:
         # return the pub struct with core elements for the overview page
         log.debug(f"> {name} --> returning result == {nspub}")
@@ -515,16 +519,25 @@ def publish_index_html(
         outfile.write(outcome)
 
 
-def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None):
+def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None):
     enable_logging(logconf)
 
     # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
     outfolder = Path(outfolder).resolve()
     nsfolder = Path(nsfolder).resolve()
+
+    # Parse ignore_folders if it's a string
+    if isinstance(ignore_folders, str):
+        ignore_folders = [f.strip() for f in ignore_folders.split(',') if f.strip()]
+    elif ignore_folders is None:
+        ignore_folders = []
+
     log.debug(
         f"publishing vocabs from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}"
     )
+    if ignore_folders:
+        log.info(f"Ignoring folders: {', '.join(ignore_folders)}")
 
     # init result sets
     vocabs = dict()
@@ -532,6 +545,11 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None):
 
     # run over nsfolder and process ontology files
     for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+        # Skip ignored folders
+        if should_ignore_path(folder, nsfolder, ignore_folders):
+            log.debug(f"Skipping ignored folder: {folder}")
+            continue
+
         for nsname in nsfiles:
             if nsname.endswith(".csv"):
                 log.debug(f"csv file at {folder} - {nsname} when walking {nsfolder}")
@@ -542,23 +560,74 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None):
                     baseuri, nsfolder, nssub, nsname, outfolder, template_path
                 )
                 if nspub["error"]:
-                    log.debug(f"vocab {nskey} failed to publish")
-                    log.exception(nspub["error_message"])
+                    log.error(f"Error processing vocabulary {nskey}")
+                    if "error_message" in nspub:
+                        log.error(f"Error details: {nspub['error_message']}")
                     vocabs_in_err.add(nskey)
                 vocabs[nskey] = nspub
+
+    if len(vocabs_in_err) > 0:
+        log.warning(f"Failed to process {len(vocabs_in_err)} out of {len(vocabs)} vocabularies")
+        for err_vocab in vocabs_in_err:
+            log.warning(f"  - {err_vocab}")
+
     return vocabs
 
 
-def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None):
+def should_ignore_path(path, nsfolder, ignore_folders):
+    """Check if a path should be ignored based on ignore_folders list.
+
+    Args:
+        path: The path to check (can be a folder path)
+        nsfolder: The base namespace folder
+        ignore_folders: List of folder patterns to ignore
+
+    Returns:
+        True if the path should be ignored, False otherwise
+    """
+    if not ignore_folders:
+        return False
+
+    # Get the relative path from nsfolder
+    try:
+        rel_path = Path(path).relative_to(nsfolder)
+    except ValueError:
+        # If path is not relative to nsfolder, don't ignore
+        return False
+
+    # Check each part of the path against ignore patterns
+    path_parts = rel_path.parts
+    for ignore_pattern in ignore_folders:
+        ignore_pattern = ignore_pattern.strip()
+        if not ignore_pattern:
+            continue
+        # Check if any part of the path matches the ignore pattern
+        for part in path_parts:
+            if part == ignore_pattern or part.startswith(ignore_pattern):
+                return True
+
+    return False
+
+
+def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None):
     enable_logging(logconf)
 
     # default target folder to input folder
     outfolder = nsfolder if outfolder is None else outfolder
     outfolder = Path(outfolder).resolve()
     nsfolder = Path(nsfolder).resolve()
+
+    # Parse ignore_folders if it's a string
+    if isinstance(ignore_folders, str):
+        ignore_folders = [f.strip() for f in ignore_folders.split(',') if f.strip()]
+    elif ignore_folders is None:
+        ignore_folders = []
+
     log.debug(
         f"publishing ontologies from '{nsfolder}' to '{outfolder}' while applying baseuri={baseuri}"
     )
+    if ignore_folders:
+        log.info(f"Ignoring folders: {', '.join(ignore_folders)}")
 
     # init result sets
     ontos = dict()
@@ -566,6 +635,11 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None
 
     # run over nsfolder and process ontology files
     for folder, dirs, nsfiles in os.walk(nsfolder, topdown=False, followlinks=True):
+        # Skip ignored folders
+        if should_ignore_path(folder, nsfolder, ignore_folders):
+            log.debug(f"Skipping ignored folder: {folder}")
+            continue
+
         for nsname in nsfiles:
             if nsname.endswith(".ttl"):
                 log.debug(f"ttl file at {folder} - {nsname} when walking {nsfolder}")
@@ -575,7 +649,9 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None
                 if bool(
                     nspub.get("error")
                 ):  # if the error key is there and set to anything non-False
-                    log.debug(f"error processing {nskey} --> {nspub}")
+                    log.error(f"Error processing ontology {nskey}")
+                    if "error_message" in nspub:
+                        log.error(f"Error details: {nspub['error_message']}")
                     ontos_in_err.add(nskey)
                 ontos[nskey] = nspub
 
@@ -583,6 +659,9 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None
     publish_misc(baseuri, nsfolder, outfolder)
 
     if len(ontos_in_err) > 0:
+        log.error(f"Failed to process {len(ontos_in_err)} out of {len(ontos)} ontologies")
+        for err_onto in ontos_in_err:
+            log.error(f"  - {err_onto}")
         raise OntoPubException(ontos, ontos_in_err)
     return ontos
 
@@ -635,16 +714,32 @@ def main():
     nsfolder = sys.argv[2] if len(sys.argv) > 2 else "."
     outfolder = sys.argv[3] if len(sys.argv) > 3 else None
     logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("LOGCONF")
+    ignore_folders = sys.argv[5] if len(sys.argv) > 5 else os.environ.get("IGNORE_FOLDERS", "")
     # load in logconf
     enable_logging(logconf)
     myfolder = Path(__file__).parent.absolute()
     template_path = myfolder / "templates"
     log.debug(f"template_path={template_path} -- exists? {template_path.exists()}")
 
+    if ignore_folders:
+        log.info(f"Configured to ignore folders: {ignore_folders}")
+
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
-    ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf)
-    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf)
+    try:
+        ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders)
+    except OntoPubException as ope:
+        log.error("=" * 80)
+        log.error("ONTOLOGY PROCESSING FAILED")
+        log.error("=" * 80)
+        log.error(ope.message)
+        log.error("Failed ontologies:")
+        for err_onto in ope.error_ontos:
+            log.error(f"  - {err_onto}")
+        log.error("=" * 80)
+        raise
+
+    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders)
     log.debug(msg=f"ontos={ontos.keys()} -- vocabs={vocabs.keys()}")
 
     # function here that will make the index.html file with info concerning the ontologies and the vocabularies
@@ -679,7 +774,7 @@ def main():
                     # to the head of the html file
                     html_content = html_content.replace(
                         "</head>",
-                        f'<link href="./{file.replace(".html","")}.ttl" rel="describedby" type="text/turtle" /></head>',
+                        f'<link href="./{file.replace(".html", "")}.ttl" rel="describedby" type="text/turtle" /></head>',
                     )
                 with open(file_path, "w") as html_file:
                     html_file.write(html_content)

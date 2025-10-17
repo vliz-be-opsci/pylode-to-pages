@@ -71,6 +71,51 @@ jobs:
           publish_dir: ./
 ```
 
+## Action Configuration Options
+
+The action supports the following input parameters:
+
+| Parameter | Description | Required | Default |
+|-----------|-------------|----------|---------|
+| `baseuri` | URL base of the domain where this ontology gets published | Yes | - |
+| `nsfolder` | Path to the ontologies to be processed | No | `.` |
+| `outfolder` | Path to where results should be placed | No | `.` |
+| `logconf` | Log configuration file in YAML format | No | `logconf.yml` |
+| `ignore_folders` | Comma-separated list of folder paths to ignore during processing | No | `` |
+
+### Using the ignore_folders parameter
+
+The `ignore_folders` parameter allows you to exclude certain folders from being processed by the action. This is useful for:
+- Excluding test directories
+- Skipping documentation folders
+- Ignoring version control folders
+- Avoiding processing of work-in-progress ontologies
+
+**Example with ignore_folders:**
+
+```yml
+- name: Build Pages
+  uses: vliz-be-opsci/pylode-to-pages@v0
+  with:
+    baseuri: http://yourdomain.com/NS/
+    ignore_folders: 'tests,docs,.git,drafts'
+```
+
+In this example, any `.ttl` or `.csv` files found in folders named `tests`, `docs`, `.git`, or `drafts` (at any level in the directory tree) will be skipped during processing.
+
+**Advanced configuration example:**
+
+```yml
+- name: Build Pages
+  uses: vliz-be-opsci/pylode-to-pages@v0
+  with:
+    baseuri: http://yourdomain.com/NS/
+    nsfolder: ./ontologies
+    outfolder: ./public
+    ignore_folders: 'tests,examples,deprecated'
+    logconf: ./config/logging.yml
+```
+
 ## Kick-start the thing
 
 In order to get this thing flying one needs to run these steps as an admin user on the github-project holding the ontologies to publish.
@@ -83,3 +128,30 @@ git checkout main
 ```
 
 The motivation behind this can be [found here](https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-first-deployment-with-github_token) and [here](https://github.com/peaceiris/actions-gh-pages/issues/9).
+
+## Error Handling and Debugging
+
+The action provides detailed error messages when processing fails. When an error occurs:
+
+1. **Check the Action Logs**: The action logs will show which ontologies or vocabularies failed to process
+2. **Review Error Details**: Each error includes:
+   - The file that failed to process
+   - The specific error message from PyLODE or the processing pipeline
+   - A stack trace for debugging
+
+**Common Issues:**
+
+- **Invalid TTL Syntax**: If your ontology file has syntax errors, PyLODE will fail with a parsing error
+- **Missing Dependencies**: Ensure all referenced namespaces and imports are accessible
+- **Path Issues**: Verify that `nsfolder` and `outfolder` paths are correct
+
+**Example Error Output:**
+
+```
+ERROR: Error processing ontology ./myontology.ttl
+ERROR: Error details: Pylode error: Unable to parse RDF file
+ERROR: Failed to process 1 out of 3 ontologies
+ERROR:   - ./myontology.ttl
+```
+
+To get more detailed logging, you can provide a custom log configuration file via the `logconf` parameter.

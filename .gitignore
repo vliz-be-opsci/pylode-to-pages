@@ -6,3 +6,4 @@ tests/new_out/
 .env
 *log
 /venv
+tests/ignore-test-out/

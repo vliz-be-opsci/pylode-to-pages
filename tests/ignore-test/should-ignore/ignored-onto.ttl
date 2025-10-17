@@ -1,4 +1,4 @@
-@prefix tst1:   <https://example.org/pylode2pages-test/onto-one#> .
+@prefix tst1:   <{{baseuri}}/{{name}}#> .
 @prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix dc:     <http://purl.org/dc/terms/> .
 @prefix schema: <http://schema.org/> .
@@ -12,16 +12,21 @@
 @prefix dcat:   <http://www.w3.org/ns/dcat#> .
 
 
-<https://example.org/pylode2pages-test/onto-one>
+<{{baseuri}}/{{name}}>
     a owl:Ontology;
-    foaf:homepage    <https://example.org/pylode2pages-test/> ;
+    foaf:homepage    <{{baseuri}}/{{name.html}}> ;
     rdfs:label       "Test Onto #01"@en ;
     dc:issued        "2022-06-07"^^xsd:date ;
     dc:modified      "2022-07-19"^^xsd:date ;
     dc:license       <https://creativecommons.org/licenses/by/4.0/> ;
-    dc:creator        "VLIZ Open science team" ;
+    dc:creator
+    [
+        schema:name         "VLIZ Open science team" ;
+        schema:email        <mailto:opsci@vliz.org> ;
+        schema:affiliation  <https://www.vliz.be/> ;
+    ] ;
     vann:preferredNamespacePrefix "tst1" ;
-    vann:preferredNamespaceUri    "https://example.org/pylode2pages-test/onto-one#" .
+    vann:preferredNamespaceUri    "{{baseuri}}/{{name}}#" .
 
 
 <https://www.vliz.be/>
@@ -33,7 +38,7 @@
 
 tst1:CClass1
   a owl:Class ;
-  rdfs:isDefinedBy  <https://example.org/pylode2pages-test/onto-one> ;
-  rdfs:comment      "Concept Class Test for onto-one."@en ;
+  rdfs:isDefinedBy  <{{baseuri}}/{{name}}> ;
+  rdfs:comment      "Concept Class Test for {{name}}."@en ;
   rdfs:label        "ConceptClass#1"@en ;
   rdfs:subClassOf   dc:Location, skos:Concept .
