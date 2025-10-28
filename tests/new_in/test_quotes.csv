@@ -1,0 +1,4 @@
+"ID","DATE","PREFLABEL_EN","DEFINITION_EN","ALTLABEL_EN","BROADER","NARROWER"
+"1","2024-01-01","Test One","This is a test, with a comma","alt1",,"[2]"
+"2","2024-01-02","Test Two","Another test, with multiple, commas",,,"[1]"
+"3","2024-01-03","Test Three","Has ""quotes"" inside",,,

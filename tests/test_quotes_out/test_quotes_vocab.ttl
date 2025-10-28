@@ -1,0 +1,33 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+
+<https://example.org/test/test_quotes#testOne>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-01-01" ;
+        dc:identifier          "Test One" ;
+        skos:prefLabel         "Test One"@en ;
+        skos:narrower          <https://example.org/test/test_quotes#2>;
+        skos:definition        "This is a test, with a comma"@en ;
+        skos:altLabel          "alt1"
+        .
+
+<https://example.org/test/test_quotes#testTwo>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-01-02" ;
+        dc:identifier          "Test Two" ;
+        skos:prefLabel         "Test Two"@en ;
+        skos:narrower          <https://example.org/test/test_quotes#1>;
+        skos:definition        "Another test, with multiple, commas"@en ;
+        
+        .
+
+<https://example.org/test/test_quotes#testThree>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-01-03" ;
+        dc:identifier          "Test Three" ;
+        skos:prefLabel         "Test Three"@en ;
+        skos:definition        "Has "quotes" inside"@en ;
+        
+        .

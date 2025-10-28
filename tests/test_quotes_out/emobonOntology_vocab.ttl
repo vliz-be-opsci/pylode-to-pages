@@ -1,0 +1,31 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+
+<https://example.org/test/emobonOntology#hard>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-08-30" ;
+        dc:identifier          "Hard" ;
+        skos:prefLabel         "Hard"@en ;
+        skos:definition        "Hard sample type"@en ;
+        skos:altLabel          "hard"
+        .
+
+<https://example.org/test/emobonOntology#soil>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-08-30" ;
+        dc:identifier          "Soil" ;
+        skos:prefLabel         "Soil"@en ;
+        skos:definition        "Soil sample type"@en ;
+        skos:altLabel          "soil"
+        .
+
+<https://example.org/test/emobonOntology#water>
+        rdf:type               skos:Concept ;
+        dc:date                "2024-08-30" ;
+        dc:identifier          "Water" ;
+        skos:prefLabel         "Water"@en ;
+        skos:definition        "Water sample type"@en ;
+        skos:altLabel          "water"
+        .
