@@ -482,25 +482,34 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
             second_args["template_name"], source, settings, sink, second_args
         )
 
-        # open the ttl file and make the same id changes as in the html file
+        # open the ttl file and convert all IRI fragments to camelCase
         output_ttl = open(outttlpath, "r")
         log.debug(f"output_ttl={output_ttl}")
-        new_lines = []
-        for line in output_ttl:
-            # if line starts with < then it is a line that contains an iri
-            if line.startswith("<"):
-                log.debug(f"line={line}")
-                # get the last part of the iri
-                new_id = camel_case(line.split("#")[1])
-                log.debug(f"new_id={new_id}")
-                line = line.replace(line.split("#")[1], new_id)
-
-            new_lines.append(line)
-
+        ttl_content = output_ttl.read()
+        output_ttl.close()
+        
+        # Find all unique IRI fragments that need to be converted
+        # Pattern matches IRIs like: <baseuri/relref#FRAGMENT>
+        import re
+        base_iri = f"{second_args['vars_dict']['baseuri']}/{second_args['vars_dict']['relref']}#"
+        # Match the fragment part after the #
+        pattern = re.escape(base_iri) + r'([^>]+)'
+        fragments = set(re.findall(pattern, ttl_content))
+        
+        # Convert each fragment to camelCase and replace all occurrences
+        for fragment in fragments:
+            # Remove trailing whitespace or newlines that might be captured
+            fragment_clean = fragment.rstrip('\n >')
+            new_id = camel_case(fragment_clean)
+            log.debug(f"Converting IRI fragment: {fragment_clean} -> {new_id}")
+            # Replace all occurrences of this fragment in the content
+            old_iri = f"{base_iri}{fragment_clean}"
+            new_iri = f"{base_iri}{new_id}"
+            ttl_content = ttl_content.replace(old_iri, new_iri)
+        
         # write the changes back to the ttl file
         with open(outttlpath, "w") as output_ttl:
-            for line in new_lines:
-                output_ttl.write(line)
+            output_ttl.write(ttl_content)
 
         shutil.copy((output_folder / output_name_html), outindexpath)
         # shutil.copy((output_folder / output_name_ttl), outttlpath)
