@@ -11,6 +11,7 @@ import shutil
 import logging
 import logging.config
 import yaml
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from pathlib import Path
@@ -490,20 +491,17 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         
         # Find all unique IRI fragments that need to be converted
         # Pattern matches IRIs like: <baseuri/relref#FRAGMENT>
-        import re
         base_iri = f"{second_args['vars_dict']['baseuri']}/{second_args['vars_dict']['relref']}#"
-        # Match the fragment part after the #
-        pattern = re.escape(base_iri) + r'([^>]+)'
+        # Match the fragment part after the # (captures everything until > or whitespace)
+        pattern = re.escape(base_iri) + r'([^>\s]+)'
         fragments = set(re.findall(pattern, ttl_content))
         
         # Convert each fragment to camelCase and replace all occurrences
         for fragment in fragments:
-            # Remove trailing whitespace or newlines that might be captured
-            fragment_clean = fragment.rstrip('\n >')
-            new_id = camel_case(fragment_clean)
-            log.debug(f"Converting IRI fragment: {fragment_clean} -> {new_id}")
+            new_id = camel_case(fragment)
+            log.debug(f"Converting IRI fragment: {fragment} -> {new_id}")
             # Replace all occurrences of this fragment in the content
-            old_iri = f"{base_iri}{fragment_clean}"
+            old_iri = f"{base_iri}{fragment}"
             new_iri = f"{base_iri}{new_id}"
             ttl_content = ttl_content.replace(old_iri, new_iri)
         
