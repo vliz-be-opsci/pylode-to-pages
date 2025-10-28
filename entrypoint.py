@@ -492,16 +492,18 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         # Find all unique IRI fragments that need to be converted
         # Pattern matches IRIs like: <baseuri/relref#FRAGMENT>
         base_iri = f"{second_args['vars_dict']['baseuri']}/{second_args['vars_dict']['relref']}#"
-        # Match the fragment part after the # (captures everything until > or whitespace)
-        pattern = re.escape(base_iri) + r'([^>\s]+)'
+        # Match the fragment part after the # (everything until the closing >)
+        pattern = re.escape(base_iri) + r'([^>]+)'
         fragments = set(re.findall(pattern, ttl_content))
         
         # Convert each fragment to camelCase and replace all occurrences
         for fragment in fragments:
-            new_id = camel_case(fragment)
-            log.debug(f"Converting IRI fragment: {fragment} -> {new_id}")
+            # Strip any trailing whitespace/newlines (but not the fragment content itself)
+            fragment_clean = fragment.rstrip()
+            new_id = camel_case(fragment_clean)
+            log.debug(f"Converting IRI fragment: '{fragment_clean}' -> '{new_id}'")
             # Replace all occurrences of this fragment in the content
-            old_iri = f"{base_iri}{fragment}"
+            old_iri = f"{base_iri}{fragment_clean}"
             new_iri = f"{base_iri}{new_id}"
             ttl_content = ttl_content.replace(old_iri, new_iri)
         
