@@ -6,8 +6,8 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
 <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.PREFLABEL_EN}}>
         rdf:type               skos:Concept ;
         dc:date                "{{row.DATE}}" ;
-        dc:identifier          "{{row.PREFLABEL_EN}}" ;
-        skos:prefLabel         "{{row.PREFLABEL_EN}}"@en ;
+        dc:identifier          {{row.PREFLABEL_EN|ttl("@und")}} ;
+        skos:prefLabel         {{row.PREFLABEL_EN|ttl("@en")}} ;
         {%-if '[' in  row.BROADER -%}
         {%-set BROADER = row.BROADER.replace('[','').replace(']','').split(';')%}
         skos:broader           {%for B in BROADER-%} 
@@ -29,10 +29,10 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
                                 {%endfor%};
         {%-endif%}
         {%if row.DEFINITION_EN-%}
-        skos:definition        "{{row.DEFINITION_EN}}"@en ;
+        skos:definition        {{row.DEFINITION_EN|ttl("@en")}} ;
         {%-endif%}
         {%if row.ALTLABEL_EN-%}
-        skos:altLabel          "{{row.ALTLABEL_EN}}" 
+        skos:altLabel          {{row.ALTLABEL_EN|ttl("@en")}}
         {%-endif%}
         .
 {% endfor %}

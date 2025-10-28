@@ -363,6 +363,34 @@ code{
                 </table>  
             </div>
         {%endfor %}
+        
+        {# Show vocabulary-only entries (vocabularies without corresponding ontologies) #}
+        {%for keyvocab, vocab in vocabs.items()%}
+            {%set has_onto = namespace(found=false)%}
+            {%for keyonto in ontos.keys()%}
+                {%if keyonto.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
+                    {%set has_onto.found = true%}
+                {%endif%}
+            {%endfor%}
+            {%if not has_onto.found and not vocab.error%}
+            {%set vocab_name = keyvocab.replace(".csv", "").replace("_draft", "").replace("./", "")%}
+            <div class="concept entity" id="vocab-{{vocab_name}}">
+                <h3 class="title">
+                    {{vocab_name}}/
+                    <a href="{{vocab_name}}_vocab" class="myButton">{%if vocab.draft%}<span class="red">DRAFT</span>{%endif%} Vocabulary (no ontology)</a>
+                    <a href="{{vocab_name}}_vocab.ttl" class="myButton right-align">.ttl</a>
+                </h3>
+                <table>
+                    <tr>
+                        <th>{%if vocab.draft%}<div class="red">DRAFT</div>{%endif%}IRI vocabulary</th>
+                        <td>
+                            <code>{{baseuri}}/{{vocab_name}}_vocab</code>
+                        </td>
+                    </tr>
+                </table>  
+            </div>
+            {%endif%}
+        {%endfor%}
     </div>
 </div>
 <div id="pylode">
@@ -392,6 +420,21 @@ code{
           <a href="#{{onto.title}}">{{onto.name}}</a>
         <li>
         {% endfor %}
+        {# Add vocabulary-only entries to TOC #}
+        {%for keyvocab, vocab in vocabs.items()%}
+            {%set has_onto = namespace(found=false)%}
+            {%for keyonto in ontos.keys()%}
+                {%if keyonto.replace(".ttl", "") == keyvocab.replace(".csv", "").replace("_draft","")%}
+                    {%set has_onto.found = true%}
+                {%endif%}
+            {%endfor%}
+            {%if not has_onto.found and not vocab.error%}
+            {%set vocab_name = keyvocab.replace(".csv", "").replace("_draft", "").replace("./", "")%}
+            <li>
+              <a href="#vocab-{{vocab_name}}">{{vocab_name}} (vocab)</a>
+            <li>
+            {%endif%}
+        {%endfor%}
       </ul>
     </li>
   </ul>

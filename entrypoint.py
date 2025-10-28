@@ -274,10 +274,8 @@ def publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf=
                 # take the last part of the folder
                 log.debug(f"parent_folder={parent_folder}")
                 log.debug(f"processing {nsname} in {folder} in dir {dirs}")
-    # clear out processing list by comparing the folder key and checking if each dict with the same folder name has a value is bot vocabulary and ontology
-    for item in processing_list:
-        if item["ontologies"] == "" and item["vocabularies"] != "":
-            processing_list.remove(item)
+    # Note: We now keep vocabulary-only entries (when ontologies == "" and vocabularies != "")
+    # This allows publishing vocabularies without corresponding ontologies
 
     # run over the processing list and create the combined index
     # init result sets
@@ -342,7 +340,22 @@ def combined_index_pub(
 
 
 def camel_case(value):
-    words = value.split(" ")
+    """Convert a value to lower camel case, handling quotes and special characters gracefully.
+    
+    Examples:
+        "Test One" -> "testOne"
+        "Has \"quotes\" inside" -> "hasQuotesInside"
+        "Multiple,  spaces" -> "multipleSpaces"
+    """
+    import re
+    # Remove quotes and other special characters, keep only alphanumeric and spaces
+    cleaned = re.sub(r'[^\w\s]', '', value)
+    # Normalize multiple spaces to single space
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    # Split on spaces and convert to camelCase
+    words = cleaned.split(" ")
+    if not words or not words[0]:
+        return value  # Return original if cleaning resulted in empty string
     return words[0].lower() + "".join(word.title() for word in words[1:])
 
 
