@@ -111,5 +111,51 @@ def test_ignore_folders():
     log.info("ignore_folders test passed successfully")
 
 
+def test_auto_camel_case():
+    enable_test_logging()
+    log.info("Testing auto_camel_case functionality")
+    parent = Path(__file__).resolve().parent
+
+    # Test with auto_camel_case enabled (default)
+    outfolder_enabled = parent / "camel-case-enabled-out"
+    shutil.rmtree(outfolder_enabled, ignore_errors=True)
+    nsfolder = parent / "new_in"
+    baseuri = "https://example.org/pylode2pages-test"
+
+    vocabs_enabled = ep.publish_vocabs(
+        baseuri, str(nsfolder), str(outfolder_enabled), "templates", auto_camel_case=True
+    )
+    log.info(f"vocabs produced with camelCase enabled == {vocabs_enabled.keys()}")
+
+    # Check that the output file exists and contains camelCase IRIs
+    vocab_html = outfolder_enabled / "test_quotes" / "test_quotes_vocab.html"
+    if vocab_html.exists():
+        with open(vocab_html, 'r') as f:
+            content = f.read()
+            # Should contain camelCase version: "testOne" instead of "Test One"
+            assert "testOne" in content, "Should contain camelCase IRI fragment 'testOne'"
+            log.info("Verified camelCase conversion: 'Test One' -> 'testOne'")
+
+    # Test with auto_camel_case disabled
+    outfolder_disabled = parent / "camel-case-disabled-out"
+    shutil.rmtree(outfolder_disabled, ignore_errors=True)
+
+    vocabs_disabled = ep.publish_vocabs(
+        baseuri, str(nsfolder), str(outfolder_disabled), "templates", auto_camel_case=False
+    )
+    log.info(f"vocabs produced with camelCase disabled == {vocabs_disabled.keys()}")
+
+    # Check that the output file contains original (non-camelCase) IRIs
+    vocab_html_disabled = outfolder_disabled / "test_quotes" / "test_quotes_vocab.html"
+    if vocab_html_disabled.exists():
+        with open(vocab_html_disabled, 'r') as f:
+            content = f.read()
+            # Should NOT contain camelCase, should preserve original spacing
+            assert "testOne" not in content, "Should NOT contain camelCase IRI fragment when disabled"
+            log.info("Verified camelCase disabled: original IRI fragments preserved")
+
+    log.info("auto_camel_case test passed successfully")
+
+
 if __name__ == "__main__":
     run_single_test(__file__)

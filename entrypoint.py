@@ -340,14 +340,22 @@ def combined_index_pub(
         return toreturn
 
 
-def camel_case(value):
+def camel_case(value, auto_convert=True):
     """Convert a value to lower camel case, handling quotes and special characters gracefully.
-    
+
+    Args:
+        value: The string value to convert
+        auto_convert: If True, converts to camelCase and strips special characters. If False, returns original value.
+
     Examples:
-        "Test One" -> "testOne"
-        "Has \"quotes\" inside" -> "hasQuotesInside"
-        "Multiple,  spaces" -> "multipleSpaces"
+        "Test One" -> "testOne" (when auto_convert=True)
+        "Has \"quotes\" inside" -> "hasQuotesInside" (when auto_convert=True)
+        "Multiple,  spaces" -> "multipleSpaces" (when auto_convert=True)
+        "Test One" -> "Test One" (when auto_convert=False)
     """
+    if not auto_convert:
+        return value
+
     import re
     # Remove quotes and other special characters, keep only alphanumeric and spaces
     cleaned = re.sub(r'[^\w\s]', '', value)
@@ -360,9 +368,9 @@ def camel_case(value):
     return words[0].lower() + "".join(word.title() for word in words[1:])
 
 
-def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
+def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path, auto_camel_case=True):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
-    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
+    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}, auto_camel_case={auto_camel_case}")
     nspath = (nsfolder / nssub / nsname).resolve()
     outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
     name = str(Path(nsname).stem)
@@ -449,7 +457,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
                             if a["href"] == "#" + previous_id:
 
                                 # begin with the changing of the href
-                                new_id = camel_case(iri.split("#")[1])
+                                new_id = camel_case(iri.split("#")[1], auto_camel_case)
                                 log.debug(f"new_id={new_id}")
                                 a["href"] = "#" + new_id
                         div["id"] = new_id
@@ -488,25 +496,25 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         log.debug(f"output_ttl={output_ttl}")
         ttl_content = output_ttl.read()
         output_ttl.close()
-        
+
         # Find all unique IRI fragments that need to be converted
         # Pattern matches IRIs like: <baseuri/relref#FRAGMENT>
         base_iri = f"{second_args['vars_dict']['baseuri']}/{second_args['vars_dict']['relref']}#"
         # Match the fragment part after the # (everything until the closing >)
         pattern = re.escape(base_iri) + r'([^>]+)'
         fragments = set(re.findall(pattern, ttl_content))
-        
+
         # Convert each fragment to camelCase and replace all occurrences
         for fragment in fragments:
             # Strip any trailing whitespace/newlines (but not the fragment content itself)
             fragment_clean = fragment.rstrip()
-            new_id = camel_case(fragment_clean)
+            new_id = camel_case(fragment_clean, auto_camel_case)
             log.debug(f"Converting IRI fragment: '{fragment_clean}' -> '{new_id}'")
             # Replace all occurrences of this fragment in the content
             old_iri = f"{base_iri}{fragment_clean}"
             new_iri = f"{base_iri}{new_id}"
             ttl_content = ttl_content.replace(old_iri, new_iri)
-        
+
         # write the changes back to the ttl file
         with open(outttlpath, "w") as output_ttl:
             output_ttl.write(ttl_content)
@@ -541,7 +549,7 @@ def publish_index_html(
         outfile.write(outcome)
 
 
-def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None):
+def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None, auto_camel_case=True):
     enable_logging(logconf)
 
     # default target folder to input folder
@@ -560,6 +568,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
     )
     if ignore_folders:
         log.info(f"Ignoring folders: {', '.join(ignore_folders)}")
+    log.info(f"Auto camelCase conversion: {auto_camel_case}")
 
     # init result sets
     vocabs = dict()
@@ -579,7 +588,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
                 nssub = Path(folder).relative_to(nsfolder)
                 nskey = f"{str(nssub)}/{nsname}"
                 nspub = vocabpub(
-                    baseuri, nsfolder, nssub, nsname, outfolder, template_path
+                    baseuri, nsfolder, nssub, nsname, outfolder, template_path, auto_camel_case
                 )
                 if nspub["error"]:
                     log.error(f"Error processing vocabulary {nskey}")
@@ -737,6 +746,9 @@ def main():
     outfolder = sys.argv[3] if len(sys.argv) > 3 else None
     logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("LOGCONF")
     ignore_folders = sys.argv[5] if len(sys.argv) > 5 else os.environ.get("IGNORE_FOLDERS", "")
+    auto_camel_case_str = sys.argv[6] if len(sys.argv) > 6 else os.environ.get("AUTO_CAMEL_CASE", "true")
+    # Convert string to boolean
+    auto_camel_case = auto_camel_case_str.lower() in ("true", "1", "yes", "on")
     # load in logconf
     enable_logging(logconf)
     myfolder = Path(__file__).parent.absolute()
@@ -745,6 +757,7 @@ def main():
 
     if ignore_folders:
         log.info(f"Configured to ignore folders: {ignore_folders}")
+    log.info(f"Auto camelCase conversion enabled: {auto_camel_case}")
 
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
@@ -761,7 +774,7 @@ def main():
         log.error("=" * 80)
         raise
 
-    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders)
+    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders, auto_camel_case)
     log.debug(msg=f"ontos={ontos.keys()} -- vocabs={vocabs.keys()}")
 
     # function here that will make the index.html file with info concerning the ontologies and the vocabularies
