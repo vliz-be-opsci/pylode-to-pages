@@ -8,3 +8,5 @@ tests/test_quotes_out/
 *log
 /venv
 tests/ignore-test-out/
+tests/camel-case-enabled-out/
+tests/camel-case-disabled-out/
