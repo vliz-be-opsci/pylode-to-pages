@@ -157,5 +157,55 @@ def test_auto_camel_case():
     log.info("auto_camel_case test passed successfully")
 
 
+def test_csv_id_validation():
+    enable_test_logging()
+    log.info("Testing CSV ID validation functionality")
+
+    # Test the validation function directly
+    # Test case 1: Valid IDs
+    valid_data = [
+        {'ID': '1', 'PREFLABEL_EN': 'Test One'},
+        {'ID': '2', 'PREFLABEL_EN': 'Test Two'},
+        {'ID': '3', 'PREFLABEL_EN': 'Test Three'},
+    ]
+    validated, errors = ep.validate_csv_ids(valid_data, auto_camel_case=True)
+    assert len(errors) == 0, "Should have no errors for valid unique IDs"
+    assert len(validated) == 3, "Should have 3 validated rows"
+    log.info("✓ Valid unique IDs passed")
+
+    # Test case 2: Duplicate IDs
+    duplicate_data = [
+        {'ID': '1', 'PREFLABEL_EN': 'Test One'},
+        {'ID': '1', 'PREFLABEL_EN': 'Test Two'},
+    ]
+    validated, errors = ep.validate_csv_ids(duplicate_data, auto_camel_case=True)
+    assert len(errors) > 0, "Should have errors for duplicate IDs"
+    assert any("Duplicate ID" in err for err in errors), "Should specifically report duplicate IDs"
+    log.info(f"✓ Duplicate IDs detected: {errors}")
+
+    # Test case 3: Non-URI-compliant IDs that get normalized
+    non_compliant_data = [
+        {'ID': '', 'PREFLABEL_EN': 'Test One'},  # Empty ID, use PREFLABEL_EN
+        {'ID': '', 'PREFLABEL_EN': 'Test Two'},
+    ]
+    validated, errors = ep.validate_csv_ids(non_compliant_data, auto_camel_case=True)
+    assert len(validated) == 2, "Should normalize non-compliant IDs when auto_camel_case=True"
+    assert validated[0]['fragment_id'] == 'testOne', "Should convert 'Test One' to 'testOne'"
+    log.info(f"✓ Non-compliant IDs normalized: {validated[0]['fragment_id']}")
+
+    # Test case 4: URI-compliant IDs from full URIs
+    uri_data = [
+        {'ID': 'https://example.org/ns#concept1', 'PREFLABEL_EN': 'Concept One'},
+        {'ID': 'https://example.org/ns#concept2', 'PREFLABEL_EN': 'Concept Two'},
+    ]
+    validated, errors = ep.validate_csv_ids(uri_data, auto_camel_case=True)
+    assert len(errors) == 0, "Should handle full URIs correctly"
+    assert validated[0]['fragment_id'] == 'concept1', "Should extract fragment from full URI"
+    assert validated[1]['fragment_id'] == 'concept2', "Should extract fragment from full URI"
+    log.info("✓ Full URI IDs handled correctly")
+
+    log.info("CSV ID validation test passed successfully")
+
+
 if __name__ == "__main__":
     run_single_test(__file__)

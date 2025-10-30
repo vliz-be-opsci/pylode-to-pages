@@ -340,6 +340,86 @@ def combined_index_pub(
         return toreturn
 
 
+def is_uri_compliant(fragment):
+    """Check if a fragment identifier is URI-compliant (can be used in a URI without encoding).
+
+    Args:
+        fragment: The fragment identifier to check
+
+    Returns:
+        True if the fragment is URI-compliant, False otherwise
+    """
+    # URI-compliant fragments should only contain unreserved characters
+    # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    # For fragment identifiers, we're more strict and check for alphanumeric, hyphen, underscore, dot
+    if not fragment:
+        return False
+    # Check if it contains only allowed characters
+    return bool(re.match(r'^[A-Za-z0-9_.-]+$', fragment))
+
+
+def validate_csv_ids(csv_data, auto_camel_case=True):
+    """Validate that CSV IDs are unique and URI-compliant, applying camelCase if needed.
+
+    Args:
+        csv_data: List of dictionaries representing CSV rows
+        auto_camel_case: If True, applies camelCase to non-compliant IDs
+
+    Returns:
+        Tuple of (validated_data, errors) where:
+        - validated_data: List of dicts with normalized 'fragment_id' field
+        - errors: List of error messages
+
+    Raises:
+        ValueError: If IDs are not unique or cannot be normalized
+    """
+    errors = []
+    seen_ids = {}
+    validated_data = []
+
+    for idx, row in enumerate(csv_data):
+        row_num = idx + 2  # +2 because CSV has header row and 1-indexed
+
+        # Determine which field to use as fragment identifier
+        # Priority: ID column (if URI-like), then PREFLABEL_EN
+        fragment_source = None
+        if 'ID' in row and row['ID']:
+            fragment_source = str(row['ID']).strip()
+        elif 'PREFLABEL_EN' in row and row['PREFLABEL_EN']:
+            fragment_source = str(row['PREFLABEL_EN']).strip()
+        else:
+            errors.append(f"Row {row_num}: No ID or PREFLABEL_EN found")
+            continue
+
+        # Extract fragment from full URI if present
+        if '#' in fragment_source:
+            fragment = fragment_source.split('#')[-1]
+        else:
+            fragment = fragment_source
+
+        # Check if URI-compliant
+        if not is_uri_compliant(fragment):
+            if auto_camel_case:
+                fragment = camel_case(fragment, auto_convert=True)
+                log.debug(f"Row {row_num}: Normalized non-compliant ID '{fragment_source}' to '{fragment}'")
+            else:
+                errors.append(f"Row {row_num}: ID '{fragment}' is not URI-compliant and auto_camel_case is disabled")
+                continue
+
+        # Check for uniqueness
+        if fragment in seen_ids:
+            errors.append(f"Row {row_num}: Duplicate ID '{fragment}' (previously seen at row {seen_ids[fragment]})")
+        else:
+            seen_ids[fragment] = row_num
+
+        # Add normalized fragment to row data
+        row_data = row.copy()
+        row_data['fragment_id'] = fragment
+        validated_data.append(row_data)
+
+    return validated_data, errors
+
+
 def camel_case(value, auto_convert=True):
     """Convert a value to lower camel case, handling quotes and special characters gracefully.
 
@@ -384,6 +464,27 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path, auto_ca
             draft = True
         else:
             draft = False
+
+        # Validate CSV IDs before processing
+        import csv
+        csv_data = []
+        with open(nspath, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            csv_data = list(reader)
+
+        # Validate and normalize IDs
+        validated_data, validation_errors = validate_csv_ids(csv_data, auto_camel_case)
+
+        if validation_errors:
+            error_msg = f"CSV validation errors in {nsname}:\n" + "\n".join(validation_errors)
+            log.error(error_msg)
+            # If there are critical errors (duplicates), fail
+            if any("Duplicate ID" in err for err in validation_errors):
+                raise ValueError(error_msg)
+            # For non-critical errors, just warn
+            log.warning(f"Proceeding with {len(validated_data)} valid rows out of {len(csv_data)} total rows")
+
+        log.info(f"Validated {len(validated_data)} rows from {nsname}, all IDs are unique and URI-compliant")
 
         if draft:
             output_name_html = nsname.replace("_draft.csv", "_vocab.html")
@@ -526,6 +627,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path, auto_ca
     except Exception as e:
         toreturn["error"] = True
         toreturn["error_message"] = str(e)
+        log.exception(e)
     finally:
         return toreturn
 
