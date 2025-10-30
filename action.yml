@@ -26,7 +26,7 @@ inputs:
     required: false
     default: ''
   auto_camel_case:
-    description: 'Enable automatic conversion of IRI fragments to camelCase, stripping quotes and non-alphanumeric characters (true/false)'
+    description: 'Enable automatic conversion of IRI fragments to camelCase, stripping quotes and non-alphanumeric characters (true/false, yes/no, 1/0, on/off)'
     required: false
     default: 'true'
 runs:
