@@ -3,15 +3,27 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
 {% for row in sets['_']%}
-<{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.PREFLABEL_EN}}>
+<{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.ID}}>
         rdf:type               skos:Concept ;
         dc:date                "{{row.DATE}}" ;
-        dc:identifier          {{row.PREFLABEL_EN|ttl("@und")}} ;
+        dc:identifier          {{row.ID|ttl("@und")}} ;
         skos:prefLabel         {{row.PREFLABEL_EN|ttl("@en")}} ;
         {%-if '[' in  row.BROADER -%}
         {%-set BROADER = row.BROADER.replace('[','').replace(']','').split(';')%}
-        skos:broader           {%for B in BROADER-%} 
-                                        <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{B}}> 
+        skos:broader      
+        {% if BROADER|length == 1 and BROADER.0 == row.BROADER %}
+        {% if BROADER.0.startswith('http://') or BROADER.0.startswith('https://') %}
+        <{{BROADER.0}}>
+        {% else %}
+        <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{BROADER.0}}>
+        {% endif %}
+        {% else %}
+        {%for B in BROADER-%}
+                                {%- if B.startswith("http://") or B.startswith("https://") -%}
+                                        <{{B}}>
+                                        {%- else -%}
+                                        <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{B}}>
+                                        {%- endif -%} 
                                         {%- if not loop.last -%}
                                         ,                  
                                         {%- else -%}
@@ -20,8 +32,20 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
         {%-endif%}
         {%-if '[' in row.NARROWER -%}
         {%-set NARROWER = row.NARROWER.replace('[','').replace(']','').split(';')%}
-        skos:narrower          {%for N in NARROWER-%} 
+        skos:narrower      
+        {% if NARROWER|length == 1 and NARROWER.0 == row.NARROWER %}
+        {% if NARROWER.0.startswith('http://') or NARROWER.0.startswith('https://') %}
+        <{{NARROWER.0}}>
+        {% else %}
+        <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{NARROWER.0}}>
+        {% endif %}
+        {% else %}    
+        {%for N in NARROWER-%} 
+                                {%- if N.startswith("http://") or N.startswith("https://") -%}
+                                <{{N}}>
+                                {%- else -%}
                                 <{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{N}}>
+                                {%- endif -%}
                                 {%- if not loop.last -%}
                                 ,                  
                                 {%- else -%}

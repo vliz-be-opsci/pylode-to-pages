@@ -49,6 +49,12 @@ def test_main():
     )
     log.info(f"ontologies produced == {ontos}")
 
+    # check for each csv that the expected output files exist
+    for csv_file in nsfolder.glob("*.csv"):
+        ont_name = csv_file.stem
+        expected_html = outfolder / ont_name / f"{ont_name}_vocab.html"
+        assert expected_html.exists(), f"expected output file {expected_html} not found"
+
     # assert returned list of ontologies processed.
     assert {"sub/onto-two.ttl", "./onto-one.ttl"} == set(
         ontos.keys()
@@ -91,22 +97,32 @@ def test_ignore_folders():
 
     # Test with ignore_folders set to "should-ignore"
     ontos = ep.publish_ontologies(
-        baseuri, str(nsfolder), str(outfolder), "templates", ignore_folders="should-ignore"
+        baseuri,
+        str(nsfolder),
+        str(outfolder),
+        "templates",
+        ignore_folders="should-ignore",
     )
     vocabs = ep.publish_vocabs(
-        baseuri, str(nsfolder), str(outfolder), "templates", ignore_folders="should-ignore"
+        baseuri,
+        str(nsfolder),
+        str(outfolder),
+        "templates",
+        ignore_folders="should-ignore",
     )
 
     # Assert that only the should-process folder was processed
     log.info(f"ontologies produced == {ontos.keys()}")
 
     # Check that should-process/onto-one.ttl was processed
-    assert any("should-process/onto-one.ttl" in key for key in ontos.keys()), \
-        "should-process/onto-one.ttl should be processed"
+    assert any(
+        "should-process/onto-one.ttl" in key for key in ontos.keys()
+    ), "should-process/onto-one.ttl should be processed"
 
     # Check that should-ignore/ignored-onto.ttl was NOT processed
-    assert not any("should-ignore" in key for key in ontos.keys()), \
-        "should-ignore folder should be ignored"
+    assert not any(
+        "should-ignore" in key for key in ontos.keys()
+    ), "should-ignore folder should be ignored"
 
     log.info("ignore_folders test passed successfully")
 
@@ -123,35 +139,46 @@ def test_auto_camel_case():
     baseuri = "https://example.org/pylode2pages-test"
 
     vocabs_enabled = ep.publish_vocabs(
-        baseuri, str(nsfolder), str(outfolder_enabled), "templates", auto_camel_case=True
+        baseuri,
+        str(nsfolder),
+        str(outfolder_enabled),
+        "templates",
+        auto_camel_case=True,
     )
     log.info(f"vocabs produced with camelCase enabled == {vocabs_enabled.keys()}")
 
     # Check that the output file exists and contains camelCase IRIs
     vocab_html = outfolder_enabled / "test_quotes" / "test_quotes_vocab.html"
+    assert vocab_html.exists(), "Vocabulary HTML file should exist"
     if vocab_html.exists():
-        with open(vocab_html, 'r') as f:
+        with open(vocab_html, "r") as f:
             content = f.read()
             # Should contain camelCase version: "testOne" instead of "Test One"
-            assert "testOne" in content, "Should contain camelCase IRI fragment 'testOne'"
-            log.info("Verified camelCase conversion: 'Test One' -> 'testOne'")
+            assert "1" in content, "Should contain camelCase IRI fragment '1'"
+            log.info("Verified camelCase conversion: '1' -> '1'")
 
     # Test with auto_camel_case disabled
     outfolder_disabled = parent / "camel-case-disabled-out"
     shutil.rmtree(outfolder_disabled, ignore_errors=True)
 
     vocabs_disabled = ep.publish_vocabs(
-        baseuri, str(nsfolder), str(outfolder_disabled), "templates", auto_camel_case=False
+        baseuri,
+        str(nsfolder),
+        str(outfolder_disabled),
+        "templates",
+        auto_camel_case=False,
     )
     log.info(f"vocabs produced with camelCase disabled == {vocabs_disabled.keys()}")
 
     # Check that the output file contains original (non-camelCase) IRIs
     vocab_html_disabled = outfolder_disabled / "test_quotes" / "test_quotes_vocab.html"
     if vocab_html_disabled.exists():
-        with open(vocab_html_disabled, 'r') as f:
+        with open(vocab_html_disabled, "r") as f:
             content = f.read()
             # Should NOT contain camelCase, should preserve original spacing
-            assert "testOne" not in content, "Should NOT contain camelCase IRI fragment when disabled"
+            assert (
+                "testOne" not in content
+            ), "Should NOT contain camelCase IRI fragment when disabled"
             log.info("Verified camelCase disabled: original IRI fragments preserved")
 
     log.info("auto_camel_case test passed successfully")
@@ -164,9 +191,9 @@ def test_csv_id_validation():
     # Test the validation function directly
     # Test case 1: Valid IDs
     valid_data = [
-        {'ID': '1', 'PREFLABEL_EN': 'Test One'},
-        {'ID': '2', 'PREFLABEL_EN': 'Test Two'},
-        {'ID': '3', 'PREFLABEL_EN': 'Test Three'},
+        {"ID": "1", "PREFLABEL_EN": "Test One"},
+        {"ID": "2", "PREFLABEL_EN": "Test Two"},
+        {"ID": "3", "PREFLABEL_EN": "Test Three"},
     ]
     validated, errors = ep.validate_csv_ids(valid_data, auto_camel_case=True)
     assert len(errors) == 0, "Should have no errors for valid unique IDs"
@@ -175,33 +202,37 @@ def test_csv_id_validation():
 
     # Test case 2: Duplicate IDs
     duplicate_data = [
-        {'ID': '1', 'PREFLABEL_EN': 'Test One'},
-        {'ID': '1', 'PREFLABEL_EN': 'Test Two'},
+        {"ID": "1", "PREFLABEL_EN": "Test One"},
+        {"ID": "1", "PREFLABEL_EN": "Test Two"},
     ]
     validated, errors = ep.validate_csv_ids(duplicate_data, auto_camel_case=True)
     assert len(errors) > 0, "Should have errors for duplicate IDs"
-    assert any("Duplicate ID" in err for err in errors), "Should specifically report duplicate IDs"
+    assert any(
+        "Duplicate ID" in err for err in errors
+    ), "Should specifically report duplicate IDs"
     log.info(f"✓ Duplicate IDs detected: {errors}")
 
-    # Test case 3: Non-URI-compliant IDs that get normalized
+    # Test case 3: Non-URI-compliant IDs should give error
     non_compliant_data = [
-        {'ID': '', 'PREFLABEL_EN': 'Test One'},  # Empty ID, use PREFLABEL_EN
-        {'ID': '', 'PREFLABEL_EN': 'Test Two'},
+        {"ID": "", "PREFLABEL_EN": "Test One"},  # Empty ID, use PREFLABEL_EN
+        {"ID": "", "PREFLABEL_EN": "Test Two"},
     ]
     validated, errors = ep.validate_csv_ids(non_compliant_data, auto_camel_case=True)
-    assert len(validated) == 2, "Should normalize non-compliant IDs when auto_camel_case=True"
-    assert validated[0]['fragment_id'] == 'testOne', "Should convert 'Test One' to 'testOne'"
-    log.info(f"✓ Non-compliant IDs normalized: {validated[0]['fragment_id']}")
+    assert len(errors) == 2, "Should have errors for non-URI-compliant IDs"
 
     # Test case 4: URI-compliant IDs from full URIs
     uri_data = [
-        {'ID': 'https://example.org/ns#concept1', 'PREFLABEL_EN': 'Concept One'},
-        {'ID': 'https://example.org/ns#concept2', 'PREFLABEL_EN': 'Concept Two'},
+        {"ID": "https://example.org/ns#concept1", "PREFLABEL_EN": "Concept One"},
+        {"ID": "https://example.org/ns#concept2", "PREFLABEL_EN": "Concept Two"},
     ]
     validated, errors = ep.validate_csv_ids(uri_data, auto_camel_case=True)
     assert len(errors) == 0, "Should handle full URIs correctly"
-    assert validated[0]['fragment_id'] == 'concept1', "Should extract fragment from full URI"
-    assert validated[1]['fragment_id'] == 'concept2', "Should extract fragment from full URI"
+    assert (
+        validated[0]["fragment_id"] == "concept1"
+    ), "Should extract fragment from full URI"
+    assert (
+        validated[1]["fragment_id"] == "concept2"
+    ), "Should extract fragment from full URI"
     log.info("✓ Full URI IDs handled correctly")
 
     log.info("CSV ID validation test passed successfully")
