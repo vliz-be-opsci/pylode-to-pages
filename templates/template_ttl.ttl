@@ -28,7 +28,8 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
                                         ,                  
                                         {%- else -%}
                                         {%- endif -%}
-                                {%endfor%};
+        {%endfor%};
+        {% endif %}
         {%-endif%}
         {%-if '[' in row.NARROWER -%}
         {%-set NARROWER = row.NARROWER.replace('[','').replace(']','').split(';')%}
@@ -57,6 +58,7 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
         {%-endif%}
         {%if row.ALTLABEL_EN-%}
         skos:altLabel          {{row.ALTLABEL_EN|ttl("@en")}}
+        {% endif %}
         {%-endif%}
         .
 {% endfor %}
