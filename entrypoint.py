@@ -970,6 +970,18 @@ def main():
     # the following function is deprecated
     # publish_combined_index(baseuri, nsfolder, outfolder, template_path, logconf)
 
+    # Check for errors in ontologies and vocabularies
+    ontos_errors = [key for key, value in ontos.items() if value.get("error")]
+    vocabs_errors = [key for key, value in vocabs.items() if value.get("error")]
+
+    if ontos_errors or vocabs_errors:
+        log.error("Errors encountered during processing:")
+        if ontos_errors:
+            log.error(f"Ontologies with errors: {ontos_errors}")
+        if vocabs_errors:
+            log.error(f"Vocabularies with errors: {vocabs_errors}")
+        sys.exit(1)  # Exit with a non-zero status code
+
     # set the action outputs
     print(f"::set-output name=ontologies::{ontos.keys()}")
     print(f"::set-output name=vocabs::{vocabs.keys()}")
