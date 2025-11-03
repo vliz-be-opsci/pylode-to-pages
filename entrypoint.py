@@ -340,19 +340,112 @@ def combined_index_pub(
         return toreturn
 
 
-def camel_case(value):
-    """Convert a value to lower camel case, handling quotes and special characters gracefully.
-    
-    Examples:
-        "Test One" -> "testOne"
-        "Has \"quotes\" inside" -> "hasQuotesInside"
-        "Multiple,  spaces" -> "multipleSpaces"
+def is_uri_compliant(fragment):
+    """Check if a fragment identifier is URI-compliant (can be used in a URI without encoding).
+
+    Args:
+        fragment: The fragment identifier to check
+
+    Returns:
+        True if the fragment is URI-compliant, False otherwise
     """
+    # URI-compliant fragments should only contain unreserved characters
+    # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    # For fragment identifiers, we're more strict and check for alphanumeric, hyphen, underscore, dot
+    if not fragment:
+        return False
+    # Check if it contains only allowed characters
+    return bool(re.match(r"^[A-Za-z0-9_.-]+$", fragment))
+
+
+def validate_csv_ids(csv_data, auto_camel_case=True):
+    """Validate that CSV IDs are unique and URI-compliant, applying camelCase if needed.
+
+    Args:
+        csv_data: List of dictionaries representing CSV rows
+        auto_camel_case: If True, applies camelCase to non-compliant IDs
+
+    Returns:
+        Tuple of (validated_data, errors) where:
+        - validated_data: List of dicts with normalized 'fragment_id' field
+        - errors: List of error messages
+
+    Raises:
+        ValueError: If IDs are not unique or cannot be normalized
+    """
+    errors = []
+    seen_ids = {}
+    validated_data = []
+
+    for idx, row in enumerate(csv_data):
+        row_num = idx + 2  # +2 because CSV has header row and 1-indexed
+
+        # Determine which field to use as fragment identifier
+        # Priority: ID column (if URI-like), then PREFLABEL_EN
+        fragment_source = None
+        if "ID" in row and row["ID"]:
+            fragment_source = str(row["ID"]).strip()
+        else:
+            errors.append(f"Row {row_num}: No ID found")
+            continue
+
+        # Extract fragment from full URI if present
+        if "#" in fragment_source:
+            fragment = fragment_source.split("#")[-1]
+        else:
+            fragment = fragment_source
+
+        # Check if URI-compliant
+        if not is_uri_compliant(fragment):
+            if auto_camel_case:
+                fragment = camel_case(fragment, auto_convert=True)
+                log.debug(
+                    f"Row {row_num}: Normalized non-compliant ID '{fragment_source}' to '{fragment}'"
+                )
+            else:
+                errors.append(
+                    f"Row {row_num}: ID '{fragment}' is not URI-compliant and auto_camel_case is disabled"
+                )
+                continue
+
+        # Check for uniqueness
+        if fragment in seen_ids:
+            errors.append(
+                f"Row {row_num}: Duplicate ID '{fragment}' (previously seen at row {seen_ids[fragment]})"
+            )
+        else:
+            seen_ids[fragment] = row_num
+
+        # Add normalized fragment to row data
+        row_data = row.copy()
+        row_data["fragment_id"] = fragment
+        validated_data.append(row_data)
+
+    return validated_data, errors
+
+
+def camel_case(value, auto_convert=True):
+    """Convert a value to lower camel case, handling quotes and special characters gracefully.
+
+    Args:
+        value: The string value to convert
+        auto_convert: If True, converts to camelCase and strips special characters. If False, returns original value.
+
+    Examples:
+        "Test One" -> "testOne" (when auto_convert=True)
+        "Has \"quotes\" inside" -> "hasQuotesInside" (when auto_convert=True)
+        "Multiple,  spaces" -> "multipleSpaces" (when auto_convert=True)
+        "Test One" -> "Test One" (when auto_convert=False)
+    """
+    if not auto_convert:
+        return value
+
     import re
+
     # Remove quotes and other special characters, keep only alphanumeric and spaces
-    cleaned = re.sub(r'[^\w\s]', '', value)
+    cleaned = re.sub(r"[^\w\s]", "", value)
     # Normalize multiple spaces to single space
-    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
     # Split on spaces and convert to camelCase
     words = cleaned.split(" ")
     if not words or not words[0]:
@@ -360,9 +453,13 @@ def camel_case(value):
     return words[0].lower() + "".join(word.title() for word in words[1:])
 
 
-def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
+def vocabpub(
+    baseuri, nsfolder, nssub, nsname, outfolder, template_path, auto_camel_case=True
+):
     log.debug(f"vocab to process: {nssub}/{nsname} in {nsfolder}")
-    log.debug(f"other params: baseuri={baseuri}, outfolder={outfolder}")
+    log.debug(
+        f"other params: baseuri={baseuri}, outfolder={outfolder}, auto_camel_case={auto_camel_case}"
+    )
     nspath = (nsfolder / nssub / nsname).resolve()
     outpath = (outfolder / nssub / str(nsname.replace("_draft", ""))).resolve()
     name = str(Path(nsname).stem)
@@ -376,6 +473,34 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
             draft = True
         else:
             draft = False
+
+        # Validate CSV IDs before processing
+        import csv
+
+        csv_data = []
+        with open(nspath, "r", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            csv_data = list(reader)
+
+        # Validate and normalize IDs
+        validated_data, validation_errors = validate_csv_ids(csv_data, auto_camel_case)
+
+        if validation_errors:
+            error_msg = f"CSV validation errors in {nsname}:\n" + "\n".join(
+                validation_errors
+            )
+            log.error(error_msg)
+            # If there are critical errors (duplicates), fail
+            if any("Duplicate ID" in err for err in validation_errors):
+                raise ValueError(error_msg)
+            # For non-critical errors, just warn
+            log.warning(
+                f"Proceeding with {len(validated_data)} valid rows out of {len(csv_data)} total rows"
+            )
+
+        log.info(
+            f"Validated {len(validated_data)} rows from {nsname}, all IDs are unique and URI-compliant"
+        )
 
         if draft:
             output_name_html = nsname.replace("_draft.csv", "_vocab.html")
@@ -449,7 +574,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
                             if a["href"] == "#" + previous_id:
 
                                 # begin with the changing of the href
-                                new_id = camel_case(iri.split("#")[1])
+                                new_id = camel_case(iri.split("#")[1], auto_camel_case)
                                 log.debug(f"new_id={new_id}")
                                 a["href"] = "#" + new_id
                         div["id"] = new_id
@@ -488,25 +613,25 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
         log.debug(f"output_ttl={output_ttl}")
         ttl_content = output_ttl.read()
         output_ttl.close()
-        
+
         # Find all unique IRI fragments that need to be converted
         # Pattern matches IRIs like: <baseuri/relref#FRAGMENT>
         base_iri = f"{second_args['vars_dict']['baseuri']}/{second_args['vars_dict']['relref']}#"
         # Match the fragment part after the # (everything until the closing >)
-        pattern = re.escape(base_iri) + r'([^>]+)'
+        pattern = re.escape(base_iri) + r"([^>]+)"
         fragments = set(re.findall(pattern, ttl_content))
-        
+
         # Convert each fragment to camelCase and replace all occurrences
         for fragment in fragments:
             # Strip any trailing whitespace/newlines (but not the fragment content itself)
             fragment_clean = fragment.rstrip()
-            new_id = camel_case(fragment_clean)
+            new_id = camel_case(fragment_clean, auto_camel_case)
             log.debug(f"Converting IRI fragment: '{fragment_clean}' -> '{new_id}'")
             # Replace all occurrences of this fragment in the content
             old_iri = f"{base_iri}{fragment_clean}"
             new_iri = f"{base_iri}{new_id}"
             ttl_content = ttl_content.replace(old_iri, new_iri)
-        
+
         # write the changes back to the ttl file
         with open(outttlpath, "w") as output_ttl:
             output_ttl.write(ttl_content)
@@ -518,6 +643,7 @@ def vocabpub(baseuri, nsfolder, nssub, nsname, outfolder, template_path):
     except Exception as e:
         toreturn["error"] = True
         toreturn["error_message"] = str(e)
+        log.exception(e)
     finally:
         return toreturn
 
@@ -541,7 +667,15 @@ def publish_index_html(
         outfile.write(outcome)
 
 
-def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None):
+def publish_vocabs(
+    baseuri,
+    nsfolder,
+    outfolder,
+    template_path,
+    logconf=None,
+    ignore_folders=None,
+    auto_camel_case=True,
+):
     enable_logging(logconf)
 
     # default target folder to input folder
@@ -551,7 +685,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
 
     # Parse ignore_folders if it's a string
     if isinstance(ignore_folders, str):
-        ignore_folders = [f.strip() for f in ignore_folders.split(',') if f.strip()]
+        ignore_folders = [f.strip() for f in ignore_folders.split(",") if f.strip()]
     elif ignore_folders is None:
         ignore_folders = []
 
@@ -560,6 +694,7 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
     )
     if ignore_folders:
         log.info(f"Ignoring folders: {', '.join(ignore_folders)}")
+    log.info(f"Auto camelCase conversion: {auto_camel_case}")
 
     # init result sets
     vocabs = dict()
@@ -579,7 +714,13 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
                 nssub = Path(folder).relative_to(nsfolder)
                 nskey = f"{str(nssub)}/{nsname}"
                 nspub = vocabpub(
-                    baseuri, nsfolder, nssub, nsname, outfolder, template_path
+                    baseuri,
+                    nsfolder,
+                    nssub,
+                    nsname,
+                    outfolder,
+                    template_path,
+                    auto_camel_case,
                 )
                 if nspub["error"]:
                     log.error(f"Error processing vocabulary {nskey}")
@@ -589,7 +730,9 @@ def publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf=None, ig
                 vocabs[nskey] = nspub
 
     if len(vocabs_in_err) > 0:
-        log.warning(f"Failed to process {len(vocabs_in_err)} out of {len(vocabs)} vocabularies")
+        log.warning(
+            f"Failed to process {len(vocabs_in_err)} out of {len(vocabs)} vocabularies"
+        )
         for err_vocab in vocabs_in_err:
             log.warning(f"  - {err_vocab}")
 
@@ -631,7 +774,9 @@ def should_ignore_path(path, nsfolder, ignore_folders):
     return False
 
 
-def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None):
+def publish_ontologies(
+    baseuri, nsfolder, outfolder, template_path, logconf=None, ignore_folders=None
+):
     enable_logging(logconf)
 
     # default target folder to input folder
@@ -641,7 +786,7 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None
 
     # Parse ignore_folders if it's a string
     if isinstance(ignore_folders, str):
-        ignore_folders = [f.strip() for f in ignore_folders.split(',') if f.strip()]
+        ignore_folders = [f.strip() for f in ignore_folders.split(",") if f.strip()]
     elif ignore_folders is None:
         ignore_folders = []
 
@@ -681,7 +826,9 @@ def publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf=None
     publish_misc(baseuri, nsfolder, outfolder)
 
     if len(ontos_in_err) > 0:
-        log.error(f"Failed to process {len(ontos_in_err)} out of {len(ontos)} ontologies")
+        log.error(
+            f"Failed to process {len(ontos_in_err)} out of {len(ontos)} ontologies"
+        )
         for err_onto in ontos_in_err:
             log.error(f"  - {err_onto}")
         raise OntoPubException(ontos, ontos_in_err)
@@ -736,7 +883,14 @@ def main():
     nsfolder = sys.argv[2] if len(sys.argv) > 2 else "."
     outfolder = sys.argv[3] if len(sys.argv) > 3 else None
     logconf = sys.argv[4] if len(sys.argv) > 4 else os.environ.get("LOGCONF")
-    ignore_folders = sys.argv[5] if len(sys.argv) > 5 else os.environ.get("IGNORE_FOLDERS", "")
+    ignore_folders = (
+        sys.argv[5] if len(sys.argv) > 5 else os.environ.get("IGNORE_FOLDERS", "")
+    )
+    auto_camel_case_str = (
+        sys.argv[6] if len(sys.argv) > 6 else os.environ.get("AUTO_CAMEL_CASE", "true")
+    )
+    # Convert string to boolean
+    auto_camel_case = auto_camel_case_str.lower() in ("true", "1", "yes", "on")
     # load in logconf
     enable_logging(logconf)
     myfolder = Path(__file__).parent.absolute()
@@ -745,11 +899,14 @@ def main():
 
     if ignore_folders:
         log.info(f"Configured to ignore folders: {ignore_folders}")
+    log.info(f"Auto camelCase conversion enabled: {auto_camel_case}")
 
     # do the actual work
     # TODO consider some way to deal with the possible OntoPubException
     try:
-        ontos = publish_ontologies(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders)
+        ontos = publish_ontologies(
+            baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders
+        )
     except OntoPubException as ope:
         log.error("=" * 80)
         log.error("ONTOLOGY PROCESSING FAILED")
@@ -761,7 +918,15 @@ def main():
         log.error("=" * 80)
         raise
 
-    vocabs = publish_vocabs(baseuri, nsfolder, outfolder, template_path, logconf, ignore_folders)
+    vocabs = publish_vocabs(
+        baseuri,
+        nsfolder,
+        outfolder,
+        template_path,
+        logconf,
+        ignore_folders,
+        auto_camel_case,
+    )
     log.debug(msg=f"ontos={ontos.keys()} -- vocabs={vocabs.keys()}")
 
     # function here that will make the index.html file with info concerning the ontologies and the vocabularies

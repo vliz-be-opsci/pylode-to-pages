@@ -16,7 +16,7 @@ handlers:
     level: DEBUG
     formatter: base
     filename: pylode2pages.log
-    mode: 'w'  # in stead of 'a'
+    mode: 'a'  # in stead of 'a'
 loggers:
   __main__:
     level: DEBUG

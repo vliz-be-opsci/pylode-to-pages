@@ -315,7 +315,7 @@
       <div class="section" id="concepts">
         <h2>Concepts</h2>
         {% for row in sets['_']%}
-        <div class="concept entity" id="{{row.PREFLABEL_EN}}">
+        <div class="concept entity" id="{{row.ID}}">
           <h3>
             {{row.PREFLABEL_EN}}
             <sup class="sup-op" title="SKOS concept">cc</sup>
@@ -325,7 +325,7 @@
               <th>IRI</th>
               <td>
                 <code
-                  >{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.PREFLABEL_EN}}</code
+                  >{{vars_dict.baseuri}}/{{vars_dict.relref}}#{{row.ID}}</code
                 >
               </td>
             </tr>
@@ -369,13 +369,25 @@
                 >
               </th>
               <td>
+                {% if BROADER|length == 1 and BROADER.0 == row.BROADER %}
+                {% if BROADER.0.startswith('http://') or BROADER.0.startswith('https://') %}
+                <a href="{{BROADER.0}}">{{BROADER.0}}</a>
+                {% else %}
+                <a href="#{{BROADER.0}}">
+                  {% for row in sets['_'] %} {% if row.ID == BROADER.0 %}
+                  <dd>- {{row.PREFLABEL_EN}}</dd>
+                  {% endif %} {% endfor %}
+                </a>
+                {% endif %}
+                {% else %}
                 {% for b in BROADER %}
                 <a href="#{{b}}">
-                  {%for row in sets['_']%} {%if row.ID == b%}
+                  {% for row in sets['_'] %} {% if row.ID == b %}
                   <dd>- {{row.PREFLABEL_EN}}</dd>
-                  {%endif%} {%endfor%}
+                  {% endif %} {% endfor %}
                 </a>
                 {% endfor %}
+                {% endif %}
               </td>
             </tr>
             {%endif%} {%if row.NARROWER%} {%-set NARROWER =
@@ -390,6 +402,17 @@
                 >
               </th>
               <td>
+                  {% if NARROWER|length == 1 and NARROWER.0 == row.NARROWER %}
+                  {% if NARROWER.0.startswith('http://') or NARROWER.0.startswith('https://') %}
+                  <a href="{{NARROWER.0}}">{{NARROWER.0}}</a>
+                  {% else %}
+                  <a href="#{{NARROWER.0}}">
+                    {% for row in sets['_'] %} {% if row.ID == NARROWER.0 %}
+                    <dd>- {{row.PREFLABEL_EN}}</dd>
+                    {% endif %} {% endfor %}
+                  </a>
+                  {% endif %}
+                  {% else %}
                 {% for n in NARROWER %}
                 <a href="#{{n}}">
                   {%for row in sets['_']%} {%if row.ID == n%}
@@ -397,6 +420,7 @@
                   {%endif%} {%endfor%}
                 </a>
                 {% endfor %}
+                {% endif %}
               </td>
             </tr>
             {%endif%}
@@ -461,7 +485,7 @@
           <ul class="second">
             {% for row in sets['_']%}
             <li>
-              <a href="#{{row.PREFLABEL_EN}}">{{row.PREFLABEL_EN}}</a>
+              <a href="#{{row.ID}}">{{row.PREFLABEL_EN}}</a>
             </li>
 
             <li>{% endfor %}</li>

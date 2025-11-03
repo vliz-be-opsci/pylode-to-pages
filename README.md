@@ -82,6 +82,7 @@ The action supports the following input parameters:
 | `outfolder` | Path to where results should be placed | No | `.` |
 | `logconf` | Log configuration file in YAML format | No | `logconf.yml` |
 | `ignore_folders` | Comma-separated list of folder paths to ignore during processing | No | `` |
+| `auto_camel_case` | Enable automatic conversion of IRI fragments to camelCase, stripping quotes and non-alphanumeric characters | No | `true` |
 
 ### Using the ignore_folders parameter
 
@@ -103,6 +104,48 @@ The `ignore_folders` parameter allows you to exclude certain folders from being 
 
 In this example, any `.ttl` or `.csv` files found in folders named `tests`, `docs`, `.git`, or `drafts` (at any level in the directory tree) will be skipped during processing.
 
+### Using the auto_camel_case parameter
+
+The `auto_camel_case` parameter controls whether IRI fragments in vocabulary files are automatically converted to lower camelCase format. When enabled (default), the action will:
+
+- Convert IRI fragments to lower camelCase (e.g., "Test One" becomes "testOne")
+- Strip single and double quotes from fragment names
+- Remove non-alphanumeric characters (except spaces used for word separation)
+- Normalize multiple spaces to single spaces
+
+This feature is particularly useful for:
+- Ensuring consistent IRI naming conventions
+- Automatically cleaning up CSV-based vocabularies with human-readable labels
+- Making IRIs more suitable for programmatic access
+
+**Default behavior (auto_camel_case enabled):**
+
+```yml
+- name: Build Pages
+  uses: vliz-be-opsci/pylode-to-pages@v0
+  with:
+    baseuri: http://yourdomain.com/NS/
+    # auto_camel_case is true by default
+```
+
+With this configuration, a CSV entry like:
+- `Sample "Type" Value` → IRI fragment: `sampleTypeValue`
+- `Data Point #1` → IRI fragment: `dataPoint1`
+
+**Disabling auto camelCase conversion:**
+
+If you want to preserve the original IRI fragment names from your CSV files without any transformation:
+
+```yml
+- name: Build Pages
+  uses: vliz-be-opsci/pylode-to-pages@v0
+  with:
+    baseuri: http://yourdomain.com/NS/
+    auto_camel_case: false
+```
+
+With `auto_camel_case: false`, IRI fragments will be used exactly as they appear in your source files.
+
 **Advanced configuration example:**
 
 ```yml
@@ -113,6 +156,7 @@ In this example, any `.ttl` or `.csv` files found in folders named `tests`, `doc
     nsfolder: ./ontologies
     outfolder: ./public
     ignore_folders: 'tests,examples,deprecated'
+    auto_camel_case: true
     logconf: ./config/logging.yml
 ```
 

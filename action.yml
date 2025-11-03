@@ -25,6 +25,10 @@ inputs:
     description: 'Comma-separated list of folder paths to ignore during processing (e.g., "tests,docs,.git")'
     required: false
     default: ''
+  auto_camel_case:
+    description: 'Enable automatic conversion of IRI fragments to camelCase, stripping quotes and non-alphanumeric characters (true/false, yes/no, 1/0, on/off)'
+    required: false
+    default: 'true'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -34,3 +38,4 @@ runs:
     - ${{ inputs.outfolder }}
     - ${{ inputs.logconf }}
     - ${{ inputs.ignore_folders }}
+    - ${{ inputs.auto_camel_case }}
